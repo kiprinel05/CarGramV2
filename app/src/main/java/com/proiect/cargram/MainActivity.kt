@@ -16,18 +16,19 @@ import com.proiect.cargram.data.repository.AuthRepositoryImpl
 import com.proiect.cargram.ui.navigation.AuthNavGraph
 import com.proiect.cargram.ui.theme.CarGramTheme
 import com.proiect.cargram.ui.viewmodel.AuthViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.hilt.navigation.compose.hiltViewModel
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    
+    @Inject
+    lateinit var authRepository: AuthRepository
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val authRepository: AuthRepository = AuthRepositoryImpl(
-            auth = Firebase.auth,
-            firestore = Firebase.firestore
-        )
         
-        val authViewModel = AuthViewModel(authRepository)
-
         setContent {
             CarGramTheme {
                 Surface(
@@ -37,7 +38,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     AuthNavGraph(
                         navController = navController,
-                        authViewModel = authViewModel
+                        authViewModel = hiltViewModel()
                     )
                 }
             }

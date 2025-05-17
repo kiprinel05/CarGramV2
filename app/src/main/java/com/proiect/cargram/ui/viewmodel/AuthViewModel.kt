@@ -3,6 +3,8 @@ package com.proiect.cargram.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.proiect.cargram.data.repository.AuthRepository
+import com.proiect.cargram.data.repository.VehicleRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,11 +14,14 @@ import javax.inject.Inject
 data class AuthUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isAuthenticated: Boolean = false
+    val isAuthenticated: Boolean = false,
+    val hasVehicleProfile: Boolean = false
 )
 
+@HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val vehicleRepository: VehicleRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -26,11 +31,22 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             authRepository.signIn(email, password)
-                .onSuccess {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        isAuthenticated = true
-                    )
+                .onSuccess { user ->
+                    // Verificăm dacă utilizatorul are profil de vehicul
+                    vehicleRepository.getVehiclesByUser(user.uid)
+                        .onSuccess { vehicles ->
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                isAuthenticated = true,
+                                hasVehicleProfile = vehicles.isNotEmpty()
+                            )
+                        }
+                        .onFailure { exception ->
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                error = exception.message
+                            )
+                        }
                 }
                 .onFailure { exception ->
                     _uiState.value = _uiState.value.copy(
@@ -48,7 +64,8 @@ class AuthViewModel @Inject constructor(
                 .onSuccess {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        isAuthenticated = true
+                        isAuthenticated = true,
+                        hasVehicleProfile = false
                     )
                 }
                 .onFailure { exception ->
@@ -62,6 +79,6 @@ class AuthViewModel @Inject constructor(
 
     fun signOut() {
         authRepository.signOut()
-        _uiState.value = _uiState.value.copy(isAuthenticated = false)
+        _uiState.value = AuthUiState()
     }
 } 

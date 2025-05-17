@@ -20,12 +20,20 @@ import com.proiect.cargram.ui.viewmodel.AuthViewModel
 fun LoginScreen(
     viewModel: AuthViewModel,
     initialEmail: String = "",
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onLoginSuccess: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf(initialEmail) }
     var password by remember { mutableStateOf("") }
     
     val uiState by viewModel.uiState.collectAsState()
+
+    // Observe authentication state
+    LaunchedEffect(uiState.isAuthenticated, uiState.hasVehicleProfile) {
+        if (uiState.isAuthenticated && uiState.hasVehicleProfile) {
+            onLoginSuccess()
+        }
+    }
 
     BackgroundImage {
         Column(

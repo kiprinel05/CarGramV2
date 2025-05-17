@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.proiect.cargram.ui.screens.LoginScreen
 import com.proiect.cargram.ui.screens.RegisterScreen
+import com.proiect.cargram.ui.screens.VehicleProfileScreen
 import com.proiect.cargram.ui.viewmodel.AuthViewModel
 
 sealed class Screen(val route: String) {
@@ -15,6 +16,8 @@ sealed class Screen(val route: String) {
         fun createRoute(email: String = "") = "login?email=$email"
     }
     object Register : Screen("register")
+    object VehicleProfile : Screen("vehicle_profile")
+    object MainFeed : Screen("main_feed")
 }
 
 @Composable
@@ -42,6 +45,12 @@ fun AuthNavGraph(
                 initialEmail = email ?: "",
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
+                },
+                onLoginSuccess = {
+                    // Pentru moment navigăm la Login până implementăm MainFeed
+                    navController.navigate(Screen.MainFeed.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -50,11 +59,22 @@ fun AuthNavGraph(
             RegisterScreen(
                 viewModel = authViewModel,
                 onRegistrationSuccess = { email ->
-                    navController.navigate(Screen.Login.createRoute(email)) {
-                        popUpTo(Screen.Login.createRoute()) { inclusive = true }
+                    navController.navigate(Screen.VehicleProfile.route)
+                }
+            )
+        }
+
+        composable(Screen.VehicleProfile.route) {
+            VehicleProfileScreen(
+                onProfileComplete = {
+                    navController.navigate(Screen.Login.createRoute()) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }
             )
+        }
+
+        composable(Screen.MainFeed.route) {
         }
     }
 } 
