@@ -47,7 +47,6 @@ fun AuthNavGraph(
                     navController.navigate(Screen.Register.route)
                 },
                 onLoginSuccess = {
-                    // Pentru moment navigăm la Login până implementăm MainFeed
                     navController.navigate(Screen.MainFeed.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
