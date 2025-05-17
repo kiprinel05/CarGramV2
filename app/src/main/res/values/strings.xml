@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CarGram</string>
+    <string name="background_image_description">App Background</string>
+    <string name="logo_image_description">CarGram Logo</string>
+</resources>

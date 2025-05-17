@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Car Eye Shape -->
+    <path
+        android:fillColor="#0099FF"
+        android:pathData="M100,50 C140,50 170,80 170,120 C170,160 140,190 100,190 C60,190 30,160 30,120 C30,80 60,50 100,50 Z" />
+
+    <!-- Headlight Reflection -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M80,80 C90,80 95,85 95,95 C95,105 90,110 80,110 C70,110 65,105 65,95 C65,85 70,80 80,80 Z" />
+
+</vector> 
