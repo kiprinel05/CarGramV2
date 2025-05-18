@@ -1,0 +1,314 @@
+package com.proiect.cargram.ui.screens
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.proiect.cargram.R
+import com.proiect.cargram.data.model.Post
+import com.proiect.cargram.ui.viewmodel.FeedViewModel
+
+@Composable
+fun FeedScreen(
+    viewModel: FeedViewModel,
+    onNavigateToSearch: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {}
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val currentUserId = viewModel.getCurrentUserId()
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Background Image
+        Image(
+            painter = painterResource(id = R.drawable.background),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds
+        )
+
+        // Main Content
+        Scaffold(
+            topBar = {
+                FeedTopBar(
+                    onSearchClick = onNavigateToSearch,
+                    onProfileClick = onNavigateToProfile
+                )
+            },
+            containerColor = Color.Transparent // Make scaffold background transparent
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(vertical = 16.dp)
+                    ) {
+                        items(uiState.posts) { post ->
+                            PostCard(
+                                post = post,
+                                currentUserId = currentUserId,
+                                onLikeClick = { viewModel.likePost(post.id) },
+                                onUnlikeClick = { viewModel.unlikePost(post.id) },
+                                onShareClick = { viewModel.sharePost(post.id) }
+                            )
+                        }
+                    }
+                }
+
+                uiState.error?.let { error ->
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(16.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FeedTopBar(
+    onSearchClick: () -> Unit,
+    onProfileClick: () -> Unit
+) {
+    TopAppBar(
+        title = {
+            Image(
+                painter = painterResource(id = R.drawable.app_logo),
+                contentDescription = "CarGram Logo",
+                modifier = Modifier
+                    .height(32.dp)
+                    .padding(start = 4.dp),
+                contentScale = ContentScale.FillHeight
+            )
+        },
+        actions = {
+            IconButton(onClick = onSearchClick) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search"
+                )
+            }
+            IconButton(onClick = onProfileClick) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Profile"
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            titleContentColor = MaterialTheme.colorScheme.primary
+        )
+    )
+}
+
+@Composable
+fun PostCard(
+    post: Post,
+    currentUserId: String?,
+    onLikeClick: () -> Unit,
+    onUnlikeClick: () -> Unit,
+    onShareClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        )
+    ) {
+        Column {
+            // Post header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // User profile picture
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(post.userProfilePicture)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Profile picture",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+                
+                Text(
+                    text = post.username,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 12.dp)
+                )
+                
+                IconButton(
+                    onClick = { /* Show more options */ },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "More options",
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            }
+
+            // Post image
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(4f/3f)
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(post.imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Post image",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            // Action buttons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                IconButton(
+                    onClick = { 
+                        if (currentUserId != null) {
+                            if (post.likedBy.contains(currentUserId)) {
+                                onUnlikeClick()
+                            } else {
+                                onLikeClick()
+                            }
+                        }
+                    },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Image(
+                        painter = painterResource(
+                            id = if (currentUserId != null && post.likedBy.contains(currentUserId)) {
+                                R.drawable.like
+                            } else {
+                                R.drawable.like
+                            }
+                        ),
+                        contentDescription = "Like",
+                        modifier = Modifier.size(24.dp),
+                        colorFilter = if (currentUserId != null && post.likedBy.contains(currentUserId)) {
+                            ColorFilter.tint(Color(0xFFE91E63)) // Pink color for liked
+                        } else {
+                            ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                        }
+                    )
+                }
+                
+                IconButton(
+                    onClick = { /* TODO: Show comments */ },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.comment),
+                        contentDescription = "Comment",
+                        modifier = Modifier.size(24.dp),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                    )
+                }
+                
+                IconButton(
+                    onClick = onShareClick,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.share),
+                        contentDescription = "Share",
+                        modifier = Modifier.size(24.dp),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                    )
+                }
+            }
+
+            // Like count and caption
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = "${post.likes} likes",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                
+                if (post.caption.isNotEmpty()) {
+                    Text(
+                        text = post.caption,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+                
+                if (post.comments > 0) {
+                    Text(
+                        text = "View all ${post.comments} comments",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        ),
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+        }
+    }
+} 

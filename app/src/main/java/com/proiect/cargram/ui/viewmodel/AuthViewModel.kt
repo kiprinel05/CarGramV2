@@ -15,7 +15,8 @@ data class AuthUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val isAuthenticated: Boolean = false,
-    val hasVehicleProfile: Boolean = false
+    val hasVehicleProfile: Boolean = false,
+    val registrationComplete: Boolean = false
 )
 
 @HiltViewModel
@@ -31,27 +32,17 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             authRepository.signIn(email, password)
-                .onSuccess { user ->
-                    // Verificăm dacă utilizatorul are profil de vehicul
-                    vehicleRepository.getVehiclesByUser(user.uid)
-                        .onSuccess { vehicles ->
-                            _uiState.value = _uiState.value.copy(
-                                isLoading = false,
-                                isAuthenticated = true,
-                                hasVehicleProfile = vehicles.isNotEmpty()
-                            )
-                        }
-                        .onFailure { exception ->
-                            _uiState.value = _uiState.value.copy(
-                                isLoading = false,
-                                error = exception.message
-                            )
-                        }
+                .onSuccess {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isAuthenticated = true,
+                        error = null
+                    )
                 }
                 .onFailure { exception ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = exception.message
+                        error = exception.message ?: "Authentication failed"
                     )
                 }
         }
@@ -65,7 +56,9 @@ class AuthViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isAuthenticated = true,
-                        hasVehicleProfile = false
+                        hasVehicleProfile = false,
+                        registrationComplete = true,
+                        error = null
                     )
                 }
                 .onFailure { exception ->
@@ -77,8 +70,18 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun completeVehicleProfile() {
+        _uiState.value = _uiState.value.copy(
+            hasVehicleProfile = true
+        )
+    }
+
     fun signOut() {
         authRepository.signOut()
         _uiState.value = AuthUiState()
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(error = null)
     }
 } 

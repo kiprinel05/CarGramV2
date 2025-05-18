@@ -1,15 +1,18 @@
 package com.proiect.cargram.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.proiect.cargram.ui.screens.LoginScreen
-import com.proiect.cargram.ui.screens.RegisterScreen
-import com.proiect.cargram.ui.screens.VehicleProfileScreen
+import com.proiect.cargram.ui.screens.*
 import com.proiect.cargram.ui.viewmodel.AuthViewModel
+import com.proiect.cargram.ui.viewmodel.FeedViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 
 sealed class Screen(val route: String) {
     object Login : Screen("login?email={email}") {
@@ -18,6 +21,8 @@ sealed class Screen(val route: String) {
     object Register : Screen("register")
     object VehicleProfile : Screen("vehicle_profile")
     object MainFeed : Screen("main_feed")
+    object Search : Screen("search")
+    object Profile : Screen("profile")
 }
 
 @Composable
@@ -25,6 +30,26 @@ fun AuthNavGraph(
     navController: NavHostController,
     authViewModel: AuthViewModel
 ) {
+    val uiState by authViewModel.uiState.collectAsState()
+
+    // Handle navigation based on authentication state
+    LaunchedEffect(uiState.isAuthenticated, uiState.hasVehicleProfile, uiState.registrationComplete) {
+        when {
+            // After successful registration and vehicle profile setup
+            uiState.isAuthenticated && uiState.hasVehicleProfile && uiState.registrationComplete -> {
+                navController.navigate(Screen.MainFeed.route) {
+                    popUpTo(Screen.Login.route) { inclusive = true }
+                }
+            }
+            // After successful login
+            uiState.isAuthenticated && !uiState.registrationComplete -> {
+                navController.navigate(Screen.MainFeed.route) {
+                    popUpTo(Screen.Login.route) { inclusive = true }
+                }
+            }
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = Screen.Login.createRoute()
@@ -45,11 +70,6 @@ fun AuthNavGraph(
                 initialEmail = email ?: "",
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
-                },
-                onLoginSuccess = {
-                    navController.navigate(Screen.MainFeed.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
                 }
             )
         }
@@ -66,14 +86,30 @@ fun AuthNavGraph(
         composable(Screen.VehicleProfile.route) {
             VehicleProfileScreen(
                 onProfileComplete = {
-                    navController.navigate(Screen.Login.createRoute()) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
+                    authViewModel.completeVehicleProfile()
                 }
             )
         }
 
         composable(Screen.MainFeed.route) {
+            val feedViewModel = hiltViewModel<FeedViewModel>()
+            FeedScreen(
+                viewModel = feedViewModel,
+                onNavigateToSearch = {
+                    navController.navigate(Screen.Search.route)
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route)
+                }
+            )
+        }
+
+        composable(Screen.Search.route) {
+            // TODO: Implement search screen
+        }
+
+        composable(Screen.Profile.route) {
+            // TODO: Implement profile screen
         }
     }
 } 

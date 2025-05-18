@@ -7,6 +7,8 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.proiect.cargram.data.repository.AuthRepository
 import com.proiect.cargram.data.repository.AuthRepositoryImpl
+import com.proiect.cargram.data.repository.PostRepository
+import com.proiect.cargram.data.repository.PostRepositoryImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,5 +38,13 @@ object FirebaseModule {
         firestore: FirebaseFirestore
     ): AuthRepository {
         return AuthRepositoryImpl(auth, firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun providePostRepository(
+        firestore: FirebaseFirestore
+    ): PostRepository {
+        return PostRepositoryImpl(firestore)
     }
 } 

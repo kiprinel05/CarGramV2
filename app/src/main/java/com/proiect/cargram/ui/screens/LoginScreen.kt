@@ -10,6 +10,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.proiect.cargram.R
 import com.proiect.cargram.ui.components.AuthTextField
@@ -20,18 +21,17 @@ import com.proiect.cargram.ui.viewmodel.AuthViewModel
 fun LoginScreen(
     viewModel: AuthViewModel,
     initialEmail: String = "",
-    onNavigateToRegister: () -> Unit,
-    onLoginSuccess: () -> Unit = {}
+    onNavigateToRegister: () -> Unit
 ) {
     var email by remember { mutableStateOf(initialEmail) }
     var password by remember { mutableStateOf("") }
     
     val uiState by viewModel.uiState.collectAsState()
 
-    // Observe authentication state
-    LaunchedEffect(uiState.isAuthenticated, uiState.hasVehicleProfile) {
-        if (uiState.isAuthenticated && uiState.hasVehicleProfile) {
-            onLoginSuccess()
+    // Clear error when email or password changes
+    LaunchedEffect(email, password) {
+        if (uiState.error != null) {
+            viewModel.clearError()
         }
     }
 
@@ -103,7 +103,7 @@ fun LoginScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
-                        enabled = !uiState.isLoading
+                        enabled = !uiState.isLoading && email.isNotEmpty() && password.isNotEmpty()
                     ) {
                         if (uiState.isLoading) {
                             CircularProgressIndicator(
@@ -131,7 +131,8 @@ fun LoginScreen(
                         Text(
                             text = error,
                             color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(top = 16.dp)
+                            modifier = Modifier.padding(top = 16.dp),
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
