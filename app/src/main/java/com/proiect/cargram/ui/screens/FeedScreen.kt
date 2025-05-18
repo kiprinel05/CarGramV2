@@ -221,76 +221,99 @@ fun PostCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = { 
-                        if (currentUserId != null) {
-                            if (post.likedBy.contains(currentUserId)) {
-                                onUnlikeClick()
-                            } else {
-                                onLikeClick()
-                            }
-                        }
-                    },
-                    modifier = Modifier.size(40.dp)
+                // Like button and count
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(
-                            id = if (currentUserId != null && post.likedBy.contains(currentUserId)) {
-                                R.drawable.like
-                            } else {
-                                R.drawable.like
+                    IconButton(
+                        onClick = { 
+                            if (currentUserId != null) {
+                                if (post.likedBy.contains(currentUserId)) {
+                                    onUnlikeClick()
+                                } else {
+                                    onLikeClick()
+                                }
                             }
-                        ),
-                        contentDescription = "Like",
-                        modifier = Modifier.size(24.dp),
-                        colorFilter = if (currentUserId != null && post.likedBy.contains(currentUserId)) {
-                            ColorFilter.tint(Color(0xFFE91E63)) // Pink color for liked
-                        } else {
-                            ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
-                        }
+                        },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(
+                                id = if (currentUserId != null && post.likedBy.contains(currentUserId)) {
+                                    R.drawable.like
+                                } else {
+                                    R.drawable.like
+                                }
+                            ),
+                            contentDescription = "Like",
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = if (currentUserId != null && post.likedBy.contains(currentUserId)) {
+                                ColorFilter.tint(Color(0xFFE91E63)) // Pink color for liked
+                            } else {
+                                ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                            }
+                        )
+                    }
+                    Text(
+                        text = "${post.likes} likes",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(end = 16.dp)
                     )
                 }
                 
-                IconButton(
-                    onClick = { /* TODO: Show comments */ },
-                    modifier = Modifier.size(40.dp)
+                // Comment button and count
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.comment),
-                        contentDescription = "Comment",
-                        modifier = Modifier.size(24.dp),
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                    IconButton(
+                        onClick = { /* TODO: Show comments */ },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.comment),
+                            contentDescription = "Comment",
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                        )
+                    }
+                    Text(
+                        text = "${post.comments} comments",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(end = 16.dp)
                     )
                 }
                 
-                IconButton(
-                    onClick = onShareClick,
-                    modifier = Modifier.size(40.dp)
+                // Share button and count
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.share),
-                        contentDescription = "Share",
-                        modifier = Modifier.size(24.dp),
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                    IconButton(
+                        onClick = onShareClick,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.share),
+                            contentDescription = "Share",
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                        )
+                    }
+                    Text(
+                        text = "${post.shares} shares",
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
 
-            // Like count and caption
+            // Remove the old like count section since we now show it next to the button
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text(
-                    text = "${post.likes} likes",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-                
                 if (post.caption.isNotEmpty()) {
                     Text(
                         text = post.caption,
