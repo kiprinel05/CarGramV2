@@ -28,11 +28,73 @@ import com.proiect.cargram.R
 import com.proiect.cargram.data.model.Post
 import com.proiect.cargram.ui.viewmodel.FeedViewModel
 
+sealed class BottomNavItem(val route: String, val icon: Int) {
+    object Home : BottomNavItem("home", R.drawable.home)
+    object CreatePost : BottomNavItem("create_post", R.drawable.share)
+    object Profile : BottomNavItem("profile", R.drawable.profile)
+}
+
+@Composable
+fun BottomNavBar(
+    currentRoute: String,
+    onNavigate: (BottomNavItem) -> Unit
+) {
+    NavigationBar(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(64.dp),
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+        tonalElevation = 0.dp
+    ) {
+        val items = listOf(
+            BottomNavItem.Home,
+            BottomNavItem.CreatePost,
+            BottomNavItem.Profile
+        )
+        
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 48.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEach { item ->
+                NavigationBarItem(
+                    icon = {
+                        Image(
+                            painter = painterResource(id = item.icon),
+                            contentDescription = item.route,
+                            modifier = Modifier.size(28.dp),
+                            colorFilter = ColorFilter.tint(
+                                if (currentRoute == item.route) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                }
+                            )
+                        )
+                    },
+                    selected = currentRoute == item.route,
+                    onClick = { onNavigate(item) },
+                    modifier = Modifier.weight(1f),
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                    )
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel,
     onNavigateToSearch: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {}
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToCreatePost: () -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {},
+    onNavigateToMessages: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val currentUserId = viewModel.getCurrentUserId()
@@ -51,7 +113,21 @@ fun FeedScreen(
             topBar = {
                 FeedTopBar(
                     onSearchClick = onNavigateToSearch,
-                    onProfileClick = onNavigateToProfile
+                    onProfileClick = onNavigateToProfile,
+                    onNotificationsClick = onNavigateToNotifications,
+                    onMessagesClick = onNavigateToMessages
+                )
+            },
+            bottomBar = {
+                BottomNavBar(
+                    currentRoute = BottomNavItem.Home.route,
+                    onNavigate = { item ->
+                        when (item) {
+                            BottomNavItem.Home -> {} // Already on home
+                            BottomNavItem.CreatePost -> onNavigateToCreatePost()
+                            BottomNavItem.Profile -> onNavigateToProfile()
+                        }
+                    }
                 )
             },
             containerColor = Color.Transparent // Make scaffold background transparent
@@ -103,35 +179,45 @@ fun FeedScreen(
 @Composable
 fun FeedTopBar(
     onSearchClick: () -> Unit,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    onNotificationsClick: () -> Unit,
+    onMessagesClick: () -> Unit
 ) {
     TopAppBar(
         title = {
-            Image(
-                painter = painterResource(id = R.drawable.app_logo),
-                contentDescription = "CarGram Logo",
+            Box(
                 modifier = Modifier
                     .height(32.dp)
-                    .padding(start = 4.dp),
-                contentScale = ContentScale.FillHeight
-            )
-        },
-        actions = {
-            IconButton(onClick = onSearchClick) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search"
+                    .padding(start = 4.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo),
+                    contentDescription = "CarGram Logo",
+                    modifier = Modifier.fillMaxHeight(),
+                    contentScale = ContentScale.Fit
                 )
             }
-            IconButton(onClick = onProfileClick) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile"
+        },
+        actions = {
+            IconButton(onClick = onNotificationsClick) {
+                Image(
+                    painter = painterResource(id = R.drawable.like),
+                    contentDescription = "Notifications",
+                    modifier = Modifier.size(24.dp),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+                )
+            }
+            IconButton(onClick = onMessagesClick) {
+                Image(
+                    painter = painterResource(id = R.drawable.message),
+                    contentDescription = "Messages",
+                    modifier = Modifier.size(24.dp),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
                 )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
             titleContentColor = MaterialTheme.colorScheme.primary
         )
     )
@@ -308,7 +394,6 @@ fun PostCard(
                 }
             }
 
-            // Remove the old like count section since we now show it next to the button
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
