@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.proiect.cargram.data.repository.AuthRepository
 import com.proiect.cargram.data.repository.VehicleRepository
+import com.proiect.cargram.data.local.UserDao
+import com.proiect.cargram.data.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +24,8 @@ data class AuthUiState(
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val vehicleRepository: VehicleRepository
+    private val vehicleRepository: VehicleRepository,
+    private val userDao: UserDao
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -33,6 +36,16 @@ class AuthViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             authRepository.signIn(email, password)
                 .onSuccess {
+                    val firebaseUser = authRepository.getCurrentUser()
+                    if (firebaseUser != null) {
+                        val user = User(
+                            id = firebaseUser.uid,
+                            username = firebaseUser.displayName ?: "user",
+                            email = firebaseUser.email ?: "",
+                            profilePicturePath = ""
+                        )
+                        userDao.insertUser(user)
+                    }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isAuthenticated = true,
@@ -53,6 +66,16 @@ class AuthViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             authRepository.signUp(email, password, username)
                 .onSuccess {
+                    val firebaseUser = authRepository.getCurrentUser()
+                    if (firebaseUser != null) {
+                        val user = User(
+                            id = firebaseUser.uid,
+                            username = username,
+                            email = firebaseUser.email ?: "",
+                            profilePicturePath = ""
+                        )
+                        userDao.insertUser(user)
+                    }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isAuthenticated = true,

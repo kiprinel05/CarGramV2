@@ -13,6 +13,7 @@ import com.proiect.cargram.ui.screens.*
 import com.proiect.cargram.ui.viewmodel.AuthViewModel
 import com.proiect.cargram.ui.viewmodel.FeedViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.proiect.cargram.ui.viewmodel.ProfileViewModel
 
 sealed class Screen(val route: String) {
     object Login : Screen("login?email={email}") {
@@ -109,7 +110,13 @@ fun AuthNavGraph(
         }
 
         composable(Screen.Profile.route) {
-            // TODO: Implement profile screen
+            val profileViewModel = hiltViewModel<ProfileViewModel>()
+            val uiState by profileViewModel.uiState.collectAsState()
+            ProfileScreen(
+                uiState = uiState,
+                onReload = { profileViewModel.loadProfile() },
+                onProfileImageSelected = { uri -> profileViewModel.uploadProfilePicture(uri) }
+            )
         }
     }
 } 

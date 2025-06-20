@@ -1,10 +1,10 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
     id("kotlin-kapt")
-    id("com.google.dagger.hilt.android")
+    id("dagger.hilt.android.plugin")
 }
 
 android {
@@ -59,6 +59,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx:20.3.0")
     
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
@@ -85,7 +86,12 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // Coil for image loading
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+    // Room
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
