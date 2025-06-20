@@ -38,11 +38,12 @@ class AuthViewModel @Inject constructor(
                 .onSuccess {
                     val firebaseUser = authRepository.getCurrentUser()
                     if (firebaseUser != null) {
+                        val existingUser = userDao.getUserById(firebaseUser.uid)
                         val user = User(
                             id = firebaseUser.uid,
                             username = firebaseUser.displayName ?: "user",
                             email = firebaseUser.email ?: "",
-                            profilePicturePath = ""
+                            profilePicturePath = existingUser?.profilePicturePath ?: ""
                         )
                         userDao.insertUser(user)
                     }
@@ -68,11 +69,12 @@ class AuthViewModel @Inject constructor(
                 .onSuccess {
                     val firebaseUser = authRepository.getCurrentUser()
                     if (firebaseUser != null) {
+                        val existingUser = userDao.getUserById(firebaseUser.uid)
                         val user = User(
                             id = firebaseUser.uid,
                             username = username,
                             email = firebaseUser.email ?: "",
-                            profilePicturePath = ""
+                            profilePicturePath = existingUser?.profilePicturePath ?: ""
                         )
                         userDao.insertUser(user)
                     }

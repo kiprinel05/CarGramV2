@@ -80,8 +80,12 @@ fun ProfileScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
                     elevation = CardDefaults.cardElevation(8.dp)
                 ) {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Box(modifier = Modifier.size(90.dp)) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(vertical = 24.dp, horizontal = 12.dp)
+                    ) {
+                        // Avatar + cameră
+                        Box(contentAlignment = Alignment.BottomEnd) {
                             val profilePicPath = user?.profilePicturePath
                             val painter = if (!profilePicPath.isNullOrBlank()) {
                                 rememberAsyncImagePainter(model = "file://$profilePicPath")
@@ -94,13 +98,11 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .size(90.dp)
                                     .clip(CircleShape)
-                                    .shadow(8.dp, CircleShape),
-                                contentScale = ContentScale.Crop
+                                    .shadow(8.dp, CircleShape)
                             )
                             IconButton(
                                 onClick = { imagePickerLauncher.launch("image/*") },
                                 modifier = Modifier
-                                    .align(Alignment.BottomEnd)
                                     .size(24.dp)
                                     .zIndex(1f)
                                     .background(MaterialTheme.colorScheme.primary, CircleShape)
@@ -114,23 +116,19 @@ fun ProfileScreen(
                                 )
                             }
                         }
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(vertical = 24.dp, horizontal = 12.dp)
+                        Spacer(modifier = Modifier.height(12.dp)) // Spațiu între avatar și username
+                        Text(
+                            text = user?.username ?: "-",
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp)) // Spațiu între username și statistici
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                text = user?.username ?: "-",
-                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
-                            )
-                            Spacer(modifier = Modifier.height(18.dp))
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                ProfileStat(number = posts.size.toString(), label = "posts")
-                                ProfileStat(number = posts.sumOf { it.likes }.toString(), label = "likes")
-                                ProfileStat(number = posts.sumOf { it.shares }.toString(), label = "favourites")
-                            }
+                            ProfileStat(number = posts.size.toString(), label = "posts")
+                            ProfileStat(number = posts.sumOf { it.likes }.toString(), label = "likes")
+                            ProfileStat(number = posts.sumOf { it.shares }.toString(), label = "favourites")
                         }
                     }
                 }
