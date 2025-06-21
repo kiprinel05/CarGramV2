@@ -3,19 +3,32 @@ package com.proiect.cargram.data.repository
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.proiect.cargram.data.api.VinDecoderApi
+import com.proiect.cargram.data.local.VehicleDao
 import com.proiect.cargram.data.model.Vehicle
 import com.proiect.cargram.di.VinDecoderApiKey
 import com.proiect.cargram.di.VinDecoderSecretKey
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import javax.inject.Inject
+import javax.inject.Singleton
 
-class VehicleRepository @Inject constructor(
+interface VehicleRepository {
+    suspend fun getVehicleDetails(vin: String, userId: String): Result<Vehicle>
+    suspend fun getVehicleForUser(userId: String): Vehicle?
+    suspend fun saveVehicle(vehicle: Vehicle, userId: String): Result<Unit>
+}
+
+@Singleton
+class VehicleRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val vinDecoderApi: VinDecoderApi,
+    private val vehicleDao: VehicleDao,
+    private val authRepository: AuthRepository,
     @VinDecoderApiKey private val apiKey: String,
     @VinDecoderSecretKey private val secretKey: String
-) {
+) : VehicleRepository {
     private fun calculateControlSum(vin: String): String {
         val input = "${vin.uppercase()}|decode|$apiKey|$secretKey"
         Log.d("VinDecoder", "Calculating control sum for input: $input")
@@ -26,7 +39,7 @@ class VehicleRepository @Inject constructor(
         return controlSum
     }
 
-    suspend fun decodeVin(vin: String): Result<Vehicle> {
+    override suspend fun getVehicleDetails(vin: String, userId: String): Result<Vehicle> {
         return try {
             Log.d("VinDecoder", "Making API request for VIN: $vin")
             Log.d("VinDecoder", "Using API Key: $apiKey")
@@ -46,9 +59,13 @@ class VehicleRepository @Inject constructor(
                 
                 val vehicle = Vehicle(
                     vin = vin,
-                    brand = decodedData["Make"] ?: "",
+                    userId = userId,
+                    make = decodedData["Make"] ?: "",
                     model = decodedData["Model"] ?: "",
                     year = decodedData["Model Year"] ?: "",
+                    engine = decodedData["Engine"] ?: "",
+                    fuelType = decodedData["Fuel Type - Primary"] ?: "",
+                    brand = decodedData["Make"] ?: "",
                     body = decodedData["Body"] ?: "",
                     trim = decodedData["Trim"] ?: "",
                     series = decodedData["Series"] ?: "",
@@ -60,10 +77,15 @@ class VehicleRepository @Inject constructor(
                     drive = decodedData["Drive"] ?: "",
                     engineCode = decodedData["Engine Code"] ?: "",
                     numberOfDoors = decodedData["Number of Doors"] ?: "",
-                    numberOfSeats = decodedData["Number of Seats"] ?: ""
+                    numberOfSeats = decodedData["Number of Seats"] ?: "",
+                    color = decodedData["Color"] ?: ""
                 )
                 
                 Log.d("VinDecoder", "Created vehicle object: $vehicle")
+                // Save to local database after fetching
+                withContext(Dispatchers.IO) {
+                    vehicleDao.insertVehicle(vehicle)
+                }
                 Result.success(vehicle)
             } else {
                 val errorBody = response.errorBody()?.string()
@@ -77,7 +99,13 @@ class VehicleRepository @Inject constructor(
         }
     }
 
-    suspend fun saveVehicle(vehicle: Vehicle, userId: String): Result<Unit> {
+    override suspend fun getVehicleForUser(userId: String): Vehicle? {
+        return withContext(Dispatchers.IO) {
+            vehicleDao.getVehicleForUser(userId)
+        }
+    }
+
+    override suspend fun saveVehicle(vehicle: Vehicle, userId: String): Result<Unit> {
         return try {
             val vehicleWithUser = vehicle.copy(userId = userId)
             firestore.collection("vehicles")

@@ -67,7 +67,7 @@ class CreatePostViewModel @Inject constructor(
                 )
                 
                 result.fold(
-                    onSuccess = { post ->
+                    onSuccess = {
                         _uiState.update { it.copy(isLoading = false) }
                         onSuccess()
                     },

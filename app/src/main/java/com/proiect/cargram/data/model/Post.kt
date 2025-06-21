@@ -1,13 +1,17 @@
 package com.proiect.cargram.data.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.firebase.Timestamp
 
+@Entity(tableName = "posts")
 data class Post(
+    @PrimaryKey
     val id: String = "",
     val userId: String = "",
     val username: String = "",
     val userProfilePicture: String? = null,
-    val imageUrl: String = "",
+    val imagePath: String? = null,
     val caption: String = "",
     val timestamp: Timestamp = Timestamp.now(),
     val likes: Int = 0,

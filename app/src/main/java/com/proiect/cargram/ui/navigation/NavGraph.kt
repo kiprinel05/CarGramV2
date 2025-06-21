@@ -23,7 +23,11 @@ sealed class Screen(val route: String) {
     object VehicleProfile : Screen("vehicle_profile")
     object MainFeed : Screen("main_feed")
     object Search : Screen("search")
-    object Profile : Screen("profile")
+    object Profile : Screen("profile?userId={userId}") {
+        fun createRoute(userId: String? = null): String {
+            return if (userId != null) "profile?userId=$userId" else "profile?userId="
+        }
+    }
     object CreatePost : Screen("create_post")
 }
 
@@ -101,7 +105,7 @@ fun AuthNavGraph(
                     navController.navigate(Screen.Search.route)
                 },
                 onNavigateToProfile = {
-                    navController.navigate(Screen.Profile.route)
+                    navController.navigate(Screen.Profile.createRoute())
                 },
                 onNavigateToCreatePost = {
                     navController.navigate(Screen.CreatePost.route)
@@ -113,7 +117,13 @@ fun AuthNavGraph(
             // TODO: Implement search screen
         }
 
-        composable(Screen.Profile.route) {
+        composable(
+            route = Screen.Profile.route,
+            arguments = listOf(navArgument("userId") {
+                type = NavType.StringType
+                nullable = true
+            })
+        ) {
             val profileViewModel = hiltViewModel<ProfileViewModel>()
             val uiState by profileViewModel.uiState.collectAsState()
             ProfileScreen(

@@ -3,7 +3,9 @@ package com.proiect.cargram.di
 import android.content.Context
 import androidx.room.Room
 import com.proiect.cargram.data.local.AppDatabase
+import com.proiect.cargram.data.local.PostDao
 import com.proiect.cargram.data.local.UserDao
+import com.proiect.cargram.data.local.VehicleDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,5 +26,20 @@ object LocalDatabaseModule {
         ).build()
 
     @Provides
-    fun provideUserDao(db: AppDatabase): UserDao = db.userDao()
+    @Singleton
+    fun provideUserDao(appDatabase: AppDatabase): UserDao {
+        return appDatabase.userDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providePostDao(appDatabase: AppDatabase): PostDao {
+        return appDatabase.postDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideVehicleDao(appDatabase: AppDatabase): VehicleDao {
+        return appDatabase.vehicleDao()
+    }
 } 

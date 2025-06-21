@@ -38,7 +38,8 @@ class VehicleProfileViewModel @Inject constructor(
             
             _uiState.update { it.copy(isLoading = true, error = null) }
             
-            vehicleRepository.decodeVin(vin)
+            val userId = "temp_user_id" // This should come from AuthRepository
+            vehicleRepository.getVehicleDetails(vin, userId)
                 .onSuccess { vehicle ->
                     Log.d("VehicleProfileVM", "VIN decode successful: $vehicle")
                     _uiState.update { 

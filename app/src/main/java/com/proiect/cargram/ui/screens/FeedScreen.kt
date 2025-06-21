@@ -293,7 +293,7 @@ fun PostCard(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(post.imageUrl)
+                        .data(post.imagePath)
                         .crossfade(true)
                         .build(),
                     contentDescription = "Post image",
