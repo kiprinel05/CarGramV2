@@ -1,5 +1,6 @@
 package com.proiect.cargram.data.repository
 
+import android.net.Uri
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -12,6 +13,7 @@ import javax.inject.Inject
 interface PostRepository {
     fun getPostsFlow(): Flow<List<Post>>
     suspend fun createPost(post: Post): Result<Post>
+    suspend fun createPost(imageUri: Uri, caption: String, vehicleInfo: String): Result<Post>
     suspend fun likePost(postId: String, userId: String): Result<Unit>
     suspend fun unlikePost(postId: String, userId: String): Result<Unit>
     suspend fun sharePost(postId: String): Result<Unit>
@@ -94,6 +96,31 @@ class PostRepositoryImpl @Inject constructor(
             val postWithId = post.copy(id = docRef.id)
             docRef.set(postWithId).await()
             Result.success(postWithId)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    override suspend fun createPost(imageUri: Uri, caption: String, vehicleInfo: String): Result<Post> {
+        return try {
+            // For now, create a simple post with the provided data
+            // In a real implementation, you would upload the image to Firebase Storage first
+            val post = Post(
+                id = "", // Will be set by Firestore
+                userId = "current_user", // Should get from Auth
+                username = "Current User", // Should get from Auth
+                userProfilePicture = "android.resource://com.proiect.cargram/drawable/app_logo",
+                imageUrl = imageUri.toString(),
+                caption = caption,
+                timestamp = Timestamp.now(),
+                likes = 0,
+                comments = 0,
+                shares = 0,
+                likedBy = listOf(),
+                vehicleId = if (vehicleInfo.isNotEmpty()) "custom_vehicle" else null
+            )
+            
+            createPost(post)
         } catch (e: Exception) {
             Result.failure(e)
         }

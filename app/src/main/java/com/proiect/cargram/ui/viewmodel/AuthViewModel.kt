@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 data class AuthUiState(
     val isLoading: Boolean = false,
@@ -38,14 +40,16 @@ class AuthViewModel @Inject constructor(
                 .onSuccess {
                     val firebaseUser = authRepository.getCurrentUser()
                     if (firebaseUser != null) {
-                        val existingUser = userDao.getUserById(firebaseUser.uid)
-                        val user = User(
-                            id = firebaseUser.uid,
-                            username = firebaseUser.displayName ?: "user",
-                            email = firebaseUser.email ?: "",
-                            profilePicturePath = existingUser?.profilePicturePath ?: ""
-                        )
-                        userDao.insertUser(user)
+                        withContext(Dispatchers.IO) {
+                            val existingUser = userDao.getUserById(firebaseUser.uid)
+                            val user = User(
+                                id = firebaseUser.uid,
+                                username = firebaseUser.displayName ?: "user",
+                                email = firebaseUser.email ?: "",
+                                profilePicturePath = existingUser?.profilePicturePath ?: ""
+                            )
+                            userDao.insertUser(user)
+                        }
                     }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -69,14 +73,16 @@ class AuthViewModel @Inject constructor(
                 .onSuccess {
                     val firebaseUser = authRepository.getCurrentUser()
                     if (firebaseUser != null) {
-                        val existingUser = userDao.getUserById(firebaseUser.uid)
-                        val user = User(
-                            id = firebaseUser.uid,
-                            username = username,
-                            email = firebaseUser.email ?: "",
-                            profilePicturePath = existingUser?.profilePicturePath ?: ""
-                        )
-                        userDao.insertUser(user)
+                        withContext(Dispatchers.IO) {
+                            val existingUser = userDao.getUserById(firebaseUser.uid)
+                            val user = User(
+                                id = firebaseUser.uid,
+                                username = username,
+                                email = firebaseUser.email ?: "",
+                                profilePicturePath = existingUser?.profilePicturePath ?: ""
+                            )
+                            userDao.insertUser(user)
+                        }
                     }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,

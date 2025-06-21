@@ -24,6 +24,7 @@ sealed class Screen(val route: String) {
     object MainFeed : Screen("main_feed")
     object Search : Screen("search")
     object Profile : Screen("profile")
+    object CreatePost : Screen("create_post")
 }
 
 @Composable
@@ -101,6 +102,9 @@ fun AuthNavGraph(
                 },
                 onNavigateToProfile = {
                     navController.navigate(Screen.Profile.route)
+                },
+                onNavigateToCreatePost = {
+                    navController.navigate(Screen.CreatePost.route)
                 }
             )
         }
@@ -116,6 +120,14 @@ fun AuthNavGraph(
                 uiState = uiState,
                 onReload = { profileViewModel.loadProfile() },
                 onProfileImageSelected = { uri -> profileViewModel.uploadProfilePicture(uri) }
+            )
+        }
+
+        composable(Screen.CreatePost.route) {
+            CreatePostScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
             )
         }
     }
