@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.proiect.cargram.data.local.PostDao
+import com.proiect.cargram.data.local.UserDao
 import com.proiect.cargram.data.model.Post
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,7 @@ class PostRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val postDao: PostDao,
+    private val userDao: UserDao,
     @ApplicationContext private val context: Context
 ) : PostRepository {
 
@@ -46,26 +48,37 @@ class PostRepositoryImpl @Inject constructor(
     override suspend fun createPost(imageUri: Uri, caption: String, vehicleInfo: String): Result<Unit> {
         return try {
             val user = auth.currentUser ?: throw Exception("User not authenticated")
-
+            var localUser = userDao.getUserById(user.uid)
+            var username = localUser?.username
+            if (username.isNullOrBlank()) {
+                val firestoreUser = firestore.collection("users").document(user.uid).get().await()
+                username = firestoreUser.getString("username") ?: user.displayName ?: "User"
+                // Update local Room user cu username-ul corect
+                val updatedUser = localUser?.copy(username = username) ?: com.proiect.cargram.data.model.User(
+                    id = user.uid,
+                    username = username,
+                    email = user.email ?: "",
+                    profilePicturePath = localUser?.profilePicturePath ?: ""
+                )
+                userDao.insertUser(updatedUser)
+                localUser = updatedUser
+            }
             // 1. Copy image to internal storage and get local path
             val localImagePath = saveImageToInternalStorage(imageUri)
-
             // 2. Create Post object for local database
             val postId = UUID.randomUUID().toString()
             val localPost = Post(
                 id = postId,
                 userId = user.uid,
-                username = user.displayName ?: "User",
-                userProfilePicture = user.photoUrl?.toString(),
+                username = username ?: user.displayName ?: "User",
+                userProfilePicture = localUser?.profilePicturePath,
                 imagePath = localImagePath,
                 caption = caption,
                 timestamp = Timestamp.now(),
                 vehicleId = if (vehicleInfo.isNotEmpty()) vehicleInfo else null
             )
-
             // 3. Save full post to local database
             postDao.insertPost(localPost)
-
             // 4. Create data map for Firestore (without image path)
             val firestorePostData = mapOf(
                 "id" to postId,
@@ -80,10 +93,8 @@ class PostRepositoryImpl @Inject constructor(
                 "likedBy" to localPost.likedBy,
                 "vehicleId" to localPost.vehicleId
             )
-            
             // 5. Save metadata-only to Firestore
             firestore.collection("posts").document(postId).set(firestorePostData).await()
-            
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

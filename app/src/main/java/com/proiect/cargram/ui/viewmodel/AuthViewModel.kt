@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 data class AuthUiState(
     val isLoading: Boolean = false,
@@ -27,7 +29,8 @@ data class AuthUiState(
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val vehicleRepository: VehicleRepository,
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val firestore: FirebaseFirestore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -41,10 +44,15 @@ class AuthViewModel @Inject constructor(
                     val firebaseUser = authRepository.getCurrentUser()
                     if (firebaseUser != null) {
                         withContext(Dispatchers.IO) {
-                            val existingUser = userDao.getUserById(firebaseUser.uid)
+                            var existingUser = userDao.getUserById(firebaseUser.uid)
+                            var username = existingUser?.username
+                            if (username.isNullOrBlank()) {
+                                val firestoreUser = firestore.collection("users").document(firebaseUser.uid).get().await()
+                                username = firestoreUser.getString("username") ?: firebaseUser.displayName ?: "user"
+                            }
                             val user = User(
                                 id = firebaseUser.uid,
-                                username = firebaseUser.displayName ?: "user",
+                                username = username ?: "user",
                                 email = firebaseUser.email ?: "",
                                 profilePicturePath = existingUser?.profilePicturePath ?: ""
                             )

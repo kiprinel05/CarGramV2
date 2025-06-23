@@ -9,6 +9,7 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.ktx.storage
 import com.proiect.cargram.data.local.PostDao
+import com.proiect.cargram.data.local.UserDao
 import com.proiect.cargram.data.repository.AuthRepository
 import com.proiect.cargram.data.repository.AuthRepositoryImpl
 import com.proiect.cargram.data.repository.PostRepository
@@ -57,9 +58,10 @@ object FirebaseModule {
         firestore: FirebaseFirestore,
         auth: FirebaseAuth,
         postDao: PostDao,
+        userDao: UserDao,
         @ApplicationContext context: Context
     ): PostRepository {
-        return PostRepositoryImpl(firestore, auth, postDao, context)
+        return PostRepositoryImpl(firestore, auth, postDao, userDao, context)
     }
 
     @Provides
