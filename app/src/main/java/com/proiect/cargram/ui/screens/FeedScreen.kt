@@ -27,6 +27,7 @@ import coil.request.ImageRequest
 import com.proiect.cargram.R
 import com.proiect.cargram.data.model.Post
 import com.proiect.cargram.ui.viewmodel.FeedViewModel
+import com.proiect.cargram.ui.viewmodel.SortType
 
 sealed class BottomNavItem(val route: String, val icon: Int) {
     object Home : BottomNavItem("home", R.drawable.home)
@@ -112,10 +113,10 @@ fun FeedScreen(
         Scaffold(
             topBar = {
                 FeedTopBar(
-                    onSearchClick = onNavigateToSearch,
-                    onProfileClick = { onNavigateToProfile(currentUserId) },
                     onNotificationsClick = onNavigateToNotifications,
-                    onMessagesClick = onNavigateToMessages
+                    onMessagesClick = onNavigateToMessages,
+                    onSortClick = { viewModel.setSortType(it) },
+                    currentSortType = uiState.sortType
                 )
             },
             bottomBar = {
@@ -178,11 +179,13 @@ fun FeedScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedTopBar(
-    onSearchClick: () -> Unit,
-    onProfileClick: () -> Unit,
     onNotificationsClick: () -> Unit,
-    onMessagesClick: () -> Unit
+    onMessagesClick: () -> Unit,
+    onSortClick: (SortType) -> Unit,
+    currentSortType: SortType
 ) {
+    var showSortMenu by remember { mutableStateOf(false) }
+    
     TopAppBar(
         title = {
             Box(
@@ -199,6 +202,67 @@ fun FeedTopBar(
             }
         },
         actions = {
+            // Sort button
+            Box {
+                IconButton(
+                    onClick = { showSortMenu = true }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Sort,
+                        contentDescription = "Sort posts",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                
+                DropdownMenu(
+                    expanded = showSortMenu,
+                    onDismissRequest = { showSortMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { 
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text("Timeline")
+                                if (currentSortType == SortType.TIMELINE) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = "Selected",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        },
+                        onClick = {
+                            onSortClick(SortType.TIMELINE)
+                            showSortMenu = false
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { 
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text("Most Liked")
+                                if (currentSortType == SortType.LIKES) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = "Selected",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        },
+                        onClick = {
+                            onSortClick(SortType.LIKES)
+                            showSortMenu = false
+                        }
+                    )
+                }
+            }
+            
             IconButton(onClick = onNotificationsClick) {
                 Image(
                     painter = painterResource(id = R.drawable.like),

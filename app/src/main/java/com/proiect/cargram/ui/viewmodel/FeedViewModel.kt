@@ -12,10 +12,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class SortType {
+    TIMELINE,
+    LIKES
+}
+
 data class FeedUiState(
     val isLoading: Boolean = false,
     val posts: List<Post> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val sortType: SortType = SortType.TIMELINE
 )
 
 @HiltViewModel
@@ -46,9 +52,12 @@ class FeedViewModel @Inject constructor(
                         }
                     }
                     
+                    // Sort posts based on current sort type
+                    val sortedPosts = sortPosts(updatedPosts, _uiState.value.sortType)
+                    
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        posts = updatedPosts,
+                        posts = sortedPosts,
                         error = null
                     )
                 }
@@ -59,6 +68,22 @@ class FeedViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun sortPosts(posts: List<Post>, sortType: SortType): List<Post> {
+        return when (sortType) {
+            SortType.TIMELINE -> posts.sortedByDescending { it.timestamp }
+            SortType.LIKES -> posts.sortedByDescending { it.likes }
+        }
+    }
+
+    fun setSortType(sortType: SortType) {
+        val currentPosts = _uiState.value.posts
+        val sortedPosts = sortPosts(currentPosts, sortType)
+        _uiState.value = _uiState.value.copy(
+            sortType = sortType,
+            posts = sortedPosts
+        )
     }
 
     fun getCurrentUserId(): String? {
@@ -108,7 +133,10 @@ class FeedViewModel @Inject constructor(
                 post
             }
         }
-        _uiState.value = _uiState.value.copy(posts = updatedPosts)
+        
+        // Re-sort posts after updating like status
+        val sortedPosts = sortPosts(updatedPosts, _uiState.value.sortType)
+        _uiState.value = _uiState.value.copy(posts = sortedPosts)
     }
 
     fun sharePost(postId: String) {
