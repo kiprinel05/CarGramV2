@@ -33,7 +33,6 @@ fun VehicleProfileScreen(
     var vin by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
 
-    // Effect pentru a loga starea UI-ului când se schimbă
     LaunchedEffect(uiState) {
         Log.d("VehicleProfileScreen", "UI State updated: $uiState")
     }

@@ -23,7 +23,9 @@ object LocalDatabaseModule {
             context,
             AppDatabase::class.java,
             "cargram_db"
-        ).build()
+        )
+        .fallbackToDestructiveMigration()
+        .build()
 
     @Provides
     @Singleton

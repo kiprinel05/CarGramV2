@@ -8,5 +8,5 @@ data class User(
     @PrimaryKey val id: String = "",
     val username: String = "",
     val email: String = "",
-    val profilePicturePath: String = "" // cale locală pentru imagine
-) 
+    val profilePicturePath: String = ""
+)
