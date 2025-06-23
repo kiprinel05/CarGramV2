@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.net.Uri
-import com.google.firebase.storage.FirebaseStorage
 import com.proiect.cargram.data.local.UserDao
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,7 +39,6 @@ class ProfileViewModel @Inject constructor(
     private val postRepository: PostRepository,
     private val userDao: UserDao,
     @ApplicationContext private val context: Context,
-    private val storage: FirebaseStorage,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProfileUiState())

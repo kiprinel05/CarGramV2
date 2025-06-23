@@ -6,7 +6,9 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.proiect.cargram.data.local.PostDao
 import com.proiect.cargram.data.local.UserDao
+import com.proiect.cargram.data.local.FavoriteDao
 import com.proiect.cargram.data.model.Post
+import com.proiect.cargram.data.model.FavoritePost
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import java.io.File
@@ -23,12 +25,19 @@ interface PostRepository {
     suspend fun sharePost(postId: String): Result<Unit>
     suspend fun getPostById(postId: String): Result<Post>
     suspend fun createPostFromCloud(post: Post)
+
+    // Favorite methods
+    suspend fun addFavorite(postId: String, userId: String)
+    suspend fun removeFavorite(postId: String, userId: String)
+    fun getFavoritesForUser(userId: String): Flow<List<FavoritePost>>
+    suspend fun isFavorite(postId: String, userId: String): Boolean
 }
 
 class PostRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val postDao: PostDao,
     private val userDao: UserDao,
+    private val favoriteDao: FavoriteDao,
     @ApplicationContext private val context: Context
 ) : PostRepository {
 
@@ -152,5 +161,25 @@ class PostRepositoryImpl @Inject constructor(
 
     override suspend fun createPostFromCloud(post: Post) {
         postDao.insertPost(post)
+    }
+
+    // Favorite methods
+    override suspend fun addFavorite(postId: String, userId: String) {
+        favoriteDao.addFavorite(FavoritePost(postId = postId, userId = userId))
+    }
+
+    override suspend fun removeFavorite(postId: String, userId: String) {
+        val fav = favoriteDao.getFavoriteByUserAndPost(userId, postId)
+        if (fav != null) {
+            favoriteDao.removeFavorite(fav)
+        }
+    }
+
+    override fun getFavoritesForUser(userId: String): Flow<List<FavoritePost>> {
+        return favoriteDao.getFavoritesForUser(userId)
+    }
+
+    override suspend fun isFavorite(postId: String, userId: String): Boolean {
+        return favoriteDao.getFavoriteByUserAndPost(userId, postId) != null
     }
 } 

@@ -1,6 +1,10 @@
 package com.proiect.cargram.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,6 +32,15 @@ import com.proiect.cargram.R
 import com.proiect.cargram.data.model.Post
 import com.proiect.cargram.ui.viewmodel.FeedViewModel
 import com.proiect.cargram.ui.viewmodel.SortType
+import com.proiect.cargram.ui.viewmodel.FeedTab
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.Text
+import androidx.compose.runtime.remember
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 
 sealed class BottomNavItem(val route: String, val icon: Int) {
     object Home : BottomNavItem("home", R.drawable.home)
@@ -133,43 +146,57 @@ fun FeedScreen(
             },
             containerColor = Color.Transparent // Make scaffold background transparent
         ) { paddingValues ->
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(vertical = 16.dp)
-                    ) {
-                        items(uiState.posts) { post ->
-                            PostCard(
-                                post = post,
-                                currentUserId = currentUserId,
-                                onLikeClick = { viewModel.likePost(post.id) },
-                                onUnlikeClick = { viewModel.unlikePost(post.id) },
-                                onShareClick = { viewModel.sharePost(post.id) }
-                            )
+                // Tabs For you / Favorites
+                FeedTabs(
+                    selectedTab = uiState.selectedTab,
+                    onTabSelected = { viewModel.setTab(it) }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(modifier = Modifier.weight(1f)) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            contentPadding = PaddingValues(vertical = 16.dp)
+                        ) {
+                            items(uiState.posts) { post ->
+                                PostCard(
+                                    post = post,
+                                    currentUserId = currentUserId,
+                                    isFavorite = viewModel.isFavorite(post.id),
+                                    onLikeClick = { viewModel.likePost(post.id) },
+                                    onUnlikeClick = { viewModel.unlikePost(post.id) },
+                                    onFavoriteClick = {
+                                        if (viewModel.isFavorite(post.id)) {
+                                            viewModel.removeFavorite(post.id)
+                                        } else {
+                                            viewModel.addFavorite(post.id)
+                                        }
+                                    }
+                                )
+                            }
                         }
                     }
-                }
-
-                uiState.error?.let { error ->
-                    Text(
-                        text = error,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp)
-                    )
+                    uiState.error?.let { error ->
+                        Text(
+                            text = error,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(16.dp)
+                        )
+                    }
                 }
             }
         }
@@ -288,12 +315,61 @@ fun FeedTopBar(
 }
 
 @Composable
+fun FeedTabs(selectedTab: FeedTab, onTabSelected: (FeedTab) -> Unit) {
+    val tabs = listOf(FeedTab.FOR_YOU to "For you", FeedTab.FAVORITES to "Favorites")
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        tabs.forEach { (tab, label) ->
+            val selected = tab == selectedTab
+            val underlineWidth by animateDpAsState(
+                targetValue = if (selected) 36.dp else 0.dp,
+                animationSpec = tween(durationMillis = 250), label = "underline"
+            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp)
+                    .clickable(
+                        onClick = { onTabSelected(tab) },
+                        indication = rememberRipple(bounded = false, color = MaterialTheme.colorScheme.primary),
+                        interactionSource = remember { MutableInteractionSource() }
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = label,
+                    fontWeight = FontWeight.Bold,
+                    color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.semantics { contentDescription = label }
+                )
+                AnimatedVisibility(visible = selected) {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 6.dp)
+                            .height(4.dp)
+                            .width(underlineWidth)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun PostCard(
     post: Post,
     currentUserId: String?,
+    isFavorite: Boolean,
     onLikeClick: () -> Unit,
     onUnlikeClick: () -> Unit,
-    onShareClick: () -> Unit
+    onFavoriteClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -326,7 +402,6 @@ fun PostCard(
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
-                
                 Text(
                     text = post.username,
                     style = MaterialTheme.typography.titleMedium.copy(
@@ -336,7 +411,6 @@ fun PostCard(
                         .weight(1f)
                         .padding(horizontal = 12.dp)
                 )
-                
                 IconButton(
                     onClick = { /* Show more options */ },
                     modifier = Modifier.size(32.dp)
@@ -348,7 +422,6 @@ fun PostCard(
                     )
                 }
             }
-
             // Post image
             Box(
                 modifier = Modifier
@@ -365,7 +438,6 @@ fun PostCard(
                     contentScale = ContentScale.Crop
                 )
             }
-
             // Action buttons
             Row(
                 modifier = Modifier
@@ -379,7 +451,7 @@ fun PostCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(
-                        onClick = { 
+                        onClick = {
                             if (currentUserId != null) {
                                 if (post.likedBy.contains(currentUserId)) {
                                     onUnlikeClick()
@@ -413,73 +485,26 @@ fun PostCard(
                         modifier = Modifier.padding(end = 16.dp)
                     )
                 }
-                
-                // Comment button and count
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+                // Favorite button
+                IconButton(
+                    onClick = onFavoriteClick,
+                    modifier = Modifier.size(40.dp)
                 ) {
-                    IconButton(
-                        onClick = { /* TODO: Show comments */ },
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.comment),
-                            contentDescription = "Comment",
-                            modifier = Modifier.size(24.dp),
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
-                        )
-                    }
-                    Text(
-                        text = "${post.comments} comments",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(end = 16.dp)
-                    )
-                }
-                
-                // Share button and count
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = onShareClick,
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.share),
-                            contentDescription = "Share",
-                            modifier = Modifier.size(24.dp),
-                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
-                        )
-                    }
-                    Text(
-                        text = "${post.shares} shares",
-                        style = MaterialTheme.typography.bodyMedium
+                    Icon(
+                        painter = painterResource(id = R.drawable.favorites),
+                        contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                        tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                if (post.caption.isNotEmpty()) {
-                    Text(
-                        text = post.caption,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-                
-                if (post.comments > 0) {
-                    Text(
-                        text = "View all ${post.comments} comments",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        ),
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
+            // Caption
+            if (!post.caption.isNullOrBlank()) {
+                Text(
+                    text = post.caption,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                )
             }
         }
     }

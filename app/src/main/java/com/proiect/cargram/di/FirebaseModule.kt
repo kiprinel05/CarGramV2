@@ -1,11 +1,9 @@
 package com.proiect.cargram.di
 
-import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.ktx.storage
+import com.proiect.cargram.data.local.FavoriteDao
 import com.proiect.cargram.data.local.PostDao
 import com.proiect.cargram.data.local.UserDao
 import com.proiect.cargram.data.repository.AuthRepository
@@ -22,19 +20,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object FirebaseModule {
-    
     @Provides
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth {
         return Firebase.auth
     }
-    
-    @Provides
-    @Singleton
-    fun provideFirebaseStorage(): FirebaseStorage {
-        return Firebase.storage
-    }
-    
+
     @Provides
     @Singleton
     fun provideAuthRepository(
@@ -49,9 +40,10 @@ object FirebaseModule {
         auth: FirebaseAuth,
         postDao: PostDao,
         userDao: UserDao,
-        @ApplicationContext context: Context
+        favoriteDao: FavoriteDao,
+        @ApplicationContext context: android.content.Context
     ): PostRepository {
-        return PostRepositoryImpl(auth, postDao, userDao, context)
+        return PostRepositoryImpl(auth, postDao, userDao, favoriteDao, context)
     }
 
     @Provides

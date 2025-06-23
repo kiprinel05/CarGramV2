@@ -6,6 +6,7 @@ import com.proiect.cargram.data.local.AppDatabase
 import com.proiect.cargram.data.local.PostDao
 import com.proiect.cargram.data.local.UserDao
 import com.proiect.cargram.data.local.VehicleDao
+import com.proiect.cargram.data.local.FavoriteDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -43,5 +44,11 @@ object LocalDatabaseModule {
     @Singleton
     fun provideVehicleDao(appDatabase: AppDatabase): VehicleDao {
         return appDatabase.vehicleDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideFavoriteDao(appDatabase: AppDatabase): FavoriteDao {
+        return appDatabase.favoriteDao()
     }
 } 
