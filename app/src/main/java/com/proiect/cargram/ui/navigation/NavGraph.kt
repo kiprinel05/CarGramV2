@@ -129,7 +129,13 @@ fun AuthNavGraph(
             ProfileScreen(
                 uiState = uiState,
                 onReload = { profileViewModel.loadProfile() },
-                onProfileImageSelected = { uri -> profileViewModel.uploadProfilePicture(uri) }
+                onProfileImageSelected = { uri -> profileViewModel.uploadProfilePicture(uri) },
+                onNavigateHome = { navController.navigate(Screen.MainFeed.route) },
+                onNavigateCreatePost = { navController.navigate(Screen.CreatePost.route) },
+                onNavigateProfile = {
+                    val userId = profileViewModel.uiState.value.user?.id
+                    navController.navigate(Screen.Profile.createRoute(userId))
+                }
             )
         }
 

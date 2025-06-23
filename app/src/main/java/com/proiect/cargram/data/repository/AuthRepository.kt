@@ -53,8 +53,6 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override fun getCurrentUser(): FirebaseUser? {
-        val currentUser = auth.currentUser
-        Log.d("AuthRepoDebug", "getCurrentUser called, result: ${currentUser?.uid}")
-        return currentUser
+        return auth.currentUser
     }
 } 
