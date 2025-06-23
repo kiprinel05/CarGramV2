@@ -16,6 +16,9 @@ import com.proiect.cargram.data.repository.AuthRepositoryImpl
 import com.proiect.cargram.ui.navigation.AuthNavGraph
 import com.proiect.cargram.ui.theme.CarGramTheme
 import com.proiect.cargram.ui.viewmodel.AuthViewModel
+import com.proiect.cargram.ui.viewmodel.SettingsViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.hilt.navigation.compose.hiltViewModel
 import javax.inject.Inject
@@ -30,7 +33,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         
         setContent {
-            CarGramTheme {
+            val settingsViewModel: SettingsViewModel = hiltViewModel()
+            val isDarkMode by settingsViewModel.isDarkMode.collectAsState()
+            CarGramTheme(darkTheme = isDarkMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -38,7 +43,8 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     AuthNavGraph(
                         navController = navController,
-                        authViewModel = hiltViewModel()
+                        authViewModel = hiltViewModel(),
+                        darkMode = isDarkMode
                     )
                 }
             }

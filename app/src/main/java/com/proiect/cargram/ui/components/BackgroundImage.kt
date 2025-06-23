@@ -14,11 +14,14 @@ import com.proiect.cargram.R
 @Composable
 fun BackgroundImage(
     modifier: Modifier = Modifier,
+    darkMode: Boolean = false,
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.background),
+            painter = painterResource(
+                id = if (darkMode) R.drawable.background_darkmode else R.drawable.background
+            ),
             contentDescription = stringResource(id = R.string.background_image_description),
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillBounds

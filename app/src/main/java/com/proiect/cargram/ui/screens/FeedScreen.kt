@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.remember
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.hilt.navigation.compose.hiltViewModel
 
 sealed class BottomNavItem(val route: String, val icon: Int) {
     object Home : BottomNavItem("home", R.drawable.home)
@@ -105,13 +107,13 @@ fun BottomNavBar(
 
 @Composable
 fun FeedScreen(
-    viewModel: FeedViewModel,
-    onNavigateToSearch: () -> Unit = {},
-    onNavigateToProfile: (String?) -> Unit = {},
-    onNavigateToCreatePost: () -> Unit = {},
-    onNavigateToNotifications: () -> Unit = {},
-    onNavigateToMessages: () -> Unit = {},
-    onNavigateToSettings: () -> Unit = {}
+    viewModel: FeedViewModel = hiltViewModel(),
+    darkMode: Boolean = false,
+    onNavigateToCreatePost: () -> Unit,
+    onNavigateToProfile: (String) -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToNotifications: () -> Unit,
+    onNavigateToMessages: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val currentUserId = viewModel.getCurrentUserId()
@@ -119,7 +121,9 @@ fun FeedScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         // Background Image
         Image(
-            painter = painterResource(id = R.drawable.background),
+            painter = painterResource(
+                id = if (darkMode) R.drawable.background_darkmode else R.drawable.background
+            ),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillBounds
@@ -142,7 +146,7 @@ fun FeedScreen(
                         when (item) {
                             BottomNavItem.Home -> {} // Already on home
                             BottomNavItem.CreatePost -> onNavigateToCreatePost()
-                            BottomNavItem.Profile -> onNavigateToProfile(currentUserId)
+                            BottomNavItem.Profile -> currentUserId?.let { onNavigateToProfile(it) }
                             BottomNavItem.Settings -> onNavigateToSettings()
                         }
                     }
@@ -239,7 +243,7 @@ fun FeedTopBar(
                     onClick = { showSortMenu = true }
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Sort,
+                        imageVector = Icons.AutoMirrored.Filled.Sort,
                         contentDescription = "Sort posts",
                         tint = MaterialTheme.colorScheme.onSurface
                     )

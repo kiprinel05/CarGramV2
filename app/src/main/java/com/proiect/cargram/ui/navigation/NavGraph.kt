@@ -35,7 +35,8 @@ sealed class Screen(val route: String) {
 @Composable
 fun AuthNavGraph(
     navController: NavHostController,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    darkMode: Boolean = false
 ) {
     val uiState by authViewModel.uiState.collectAsState()
 
@@ -75,6 +76,7 @@ fun AuthNavGraph(
             LoginScreen(
                 viewModel = authViewModel,
                 initialEmail = email ?: "",
+                darkMode = darkMode,
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
                 }
@@ -84,6 +86,7 @@ fun AuthNavGraph(
         composable(Screen.Register.route) {
             RegisterScreen(
                 viewModel = authViewModel,
+                darkMode = darkMode,
                 onRegistrationSuccess = { email ->
                     navController.navigate(Screen.VehicleProfile.route)
                 }
@@ -92,6 +95,7 @@ fun AuthNavGraph(
 
         composable(Screen.VehicleProfile.route) {
             VehicleProfileScreen(
+                darkMode = darkMode,
                 onProfileComplete = {
                     authViewModel.completeVehicleProfile()
                 }
@@ -102,16 +106,20 @@ fun AuthNavGraph(
             val feedViewModel = hiltViewModel<FeedViewModel>()
             FeedScreen(
                 viewModel = feedViewModel,
-                onNavigateToSearch = {
-                    navController.navigate(Screen.Search.route)
+                darkMode = darkMode,
+                onNavigateToCreatePost = {
+                    navController.navigate(Screen.CreatePost.route)
                 },
                 onNavigateToProfile = { currentUserId ->
                     navController.navigate(Screen.Profile.createRoute(currentUserId))
                 },
-                onNavigateToCreatePost = {
-                    navController.navigate(Screen.CreatePost.route)
+                onNavigateToSettings = { navController.navigate("settings") },
+                onNavigateToNotifications = {
+                    // TODO: Implement notifications navigation
                 },
-                onNavigateToSettings = { navController.navigate("settings") }
+                onNavigateToMessages = {
+                    // TODO: Implement messages navigation
+                }
             )
         }
 
@@ -130,6 +138,7 @@ fun AuthNavGraph(
             val uiState by profileViewModel.uiState.collectAsState()
             ProfileScreen(
                 uiState = uiState,
+                darkMode = darkMode,
                 onReload = { profileViewModel.loadProfile() },
                 onProfileImageSelected = { uri -> profileViewModel.uploadProfilePicture(uri) },
                 onNavigateHome = { navController.navigate(Screen.MainFeed.route) },
@@ -146,15 +155,15 @@ fun AuthNavGraph(
             CreatePostScreen(
                 onNavigateBack = {
                     navController.popBackStack()
-                }
+                },
+                darkMode = darkMode
             )
         }
 
         composable("settings") {
             val authViewModel = hiltViewModel<AuthViewModel>()
             SettingsScreen(
-                isDarkMode = false, // TODO: leagă de preferințe
-                onDarkModeToggle = {},
+                darkMode = darkMode,
                 onLogout = {
                     authViewModel.signOut()
                     navController.navigate(Screen.Login.createRoute()) {

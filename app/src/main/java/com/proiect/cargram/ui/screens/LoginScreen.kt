@@ -21,6 +21,7 @@ import com.proiect.cargram.ui.viewmodel.AuthViewModel
 fun LoginScreen(
     viewModel: AuthViewModel,
     initialEmail: String = "",
+    darkMode: Boolean = false,
     onNavigateToRegister: () -> Unit
 ) {
     var email by remember { mutableStateOf(initialEmail) }
@@ -35,7 +36,7 @@ fun LoginScreen(
         }
     }
 
-    BackgroundImage {
+    BackgroundImage(darkMode = darkMode) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

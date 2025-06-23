@@ -93,6 +93,11 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
 
+    // DataStore Preferences
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    // Compose runtime (pentru collectAsState, dacă nu există deja)
+    implementation("androidx.compose.runtime:runtime:1.5.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

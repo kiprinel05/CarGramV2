@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun CreatePostScreen(
     onNavigateBack: () -> Unit,
+    darkMode: Boolean = false,
     viewModel: CreatePostViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -49,7 +51,9 @@ fun CreatePostScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         // Background Image
         Image(
-            painter = painterResource(id = R.drawable.background),
+            painter = painterResource(
+                id = if (darkMode) R.drawable.background_darkmode else R.drawable.background
+            ),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillBounds
@@ -178,7 +182,7 @@ fun CreatePostTopBar(
         navigationIcon = {
             IconButton(onClick = onBackClick) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Înapoi",
                     tint = MaterialTheme.colorScheme.onSurface
                 )

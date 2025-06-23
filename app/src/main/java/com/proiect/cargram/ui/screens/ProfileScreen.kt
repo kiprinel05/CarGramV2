@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 @Composable
 fun ProfileScreen(
     uiState: ProfileUiState,
+    darkMode: Boolean = false,
     onReload: (() -> Unit)? = null,
     onProfileImageSelected: ((Uri) -> Unit)? = null,
     onNavigateHome: (() -> Unit)? = null,
@@ -52,7 +53,9 @@ fun ProfileScreen(
     
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.background),
+            painter = painterResource(
+                id = if (darkMode) R.drawable.background_darkmode else R.drawable.background
+            ),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop

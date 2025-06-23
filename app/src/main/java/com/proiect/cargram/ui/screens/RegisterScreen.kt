@@ -22,6 +22,7 @@ import com.proiect.cargram.ui.viewmodel.AuthViewModel
 @Composable
 fun RegisterScreen(
     viewModel: AuthViewModel,
+    darkMode: Boolean = false,
     onRegistrationSuccess: (String) -> Unit
 ) {
     var username by remember { mutableStateOf("") }
@@ -38,7 +39,7 @@ fun RegisterScreen(
         }
     }
 
-    BackgroundImage {
+    BackgroundImage(darkMode = darkMode) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

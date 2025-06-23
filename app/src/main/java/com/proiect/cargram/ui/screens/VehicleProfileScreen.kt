@@ -22,9 +22,11 @@ import com.proiect.cargram.R
 import com.proiect.cargram.ui.viewmodel.VehicleProfileViewModel
 import com.proiect.cargram.data.model.Vehicle
 import android.util.Log
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun VehicleProfileScreen(
+    darkMode: Boolean = false,
     viewModel: VehicleProfileViewModel = hiltViewModel(),
     onProfileComplete: () -> Unit
 ) {
@@ -36,11 +38,17 @@ fun VehicleProfileScreen(
         Log.d("VehicleProfileScreen", "UI State updated: $uiState")
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Background Image
+        Image(
+            painter = painterResource(
+                id = if (darkMode) R.drawable.background_darkmode else R.drawable.background
+            ),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds
+        )
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
