@@ -103,13 +103,13 @@ class PostRepositoryImpl @Inject constructor(
     
     override suspend fun likePost(postId: String, userId: String): Result<Unit> {
         return try {
+            // Actualizare Firestore (cum e deja)
             val postRef = firestore.collection("posts").document(postId)
             firestore.runTransaction { transaction ->
                 val snapshot = transaction.get(postRef)
                 val post = snapshot.toObject(Post::class.java)
                 val currentLikes = post?.likes ?: 0
-                val currentLikedBy = post?.likedBy ?: listOf()
-                
+                val currentLikedBy = post?.likedBy ?: listOf<String>()
                 if (userId !in currentLikedBy) {
                     transaction.update(postRef, mapOf(
                         "likes" to currentLikes + 1,
@@ -117,6 +117,15 @@ class PostRepositoryImpl @Inject constructor(
                     ))
                 }
             }.await()
+            // Actualizare și în Room
+            val localPost = postDao.getPostById(postId)
+            if (localPost != null) {
+                val updatedPost = localPost.copy(
+                    likes = localPost.likes + 1,
+                    likedBy = localPost.likedBy + userId
+                )
+                postDao.insertPost(updatedPost)
+            }
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -125,13 +134,13 @@ class PostRepositoryImpl @Inject constructor(
     
     override suspend fun unlikePost(postId: String, userId: String): Result<Unit> {
         return try {
+            // Actualizare Firestore (cum e deja)
             val postRef = firestore.collection("posts").document(postId)
             firestore.runTransaction { transaction ->
                 val snapshot = transaction.get(postRef)
                 val post = snapshot.toObject(Post::class.java)
                 val currentLikes = post?.likes ?: 0
-                val currentLikedBy = post?.likedBy ?: listOf()
-                
+                val currentLikedBy = post?.likedBy ?: listOf<String>()
                 if (userId in currentLikedBy) {
                     transaction.update(postRef, mapOf(
                         "likes" to (currentLikes - 1).coerceAtLeast(0),
@@ -139,6 +148,15 @@ class PostRepositoryImpl @Inject constructor(
                     ))
                 }
             }.await()
+            // Actualizare și în Room
+            val localPost = postDao.getPostById(postId)
+            if (localPost != null) {
+                val updatedPost = localPost.copy(
+                    likes = (localPost.likes - 1).coerceAtLeast(0),
+                    likedBy = localPost.likedBy - userId
+                )
+                postDao.insertPost(updatedPost)
+            }
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

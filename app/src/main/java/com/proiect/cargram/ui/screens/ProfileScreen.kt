@@ -103,7 +103,8 @@ fun ProfileScreen(
                                 modifier = Modifier
                                     .size(90.dp)
                                     .clip(CircleShape)
-                                    .shadow(8.dp, CircleShape)
+                                    .shadow(8.dp, CircleShape),
+                                contentScale = ContentScale.Crop
                             )
                             IconButton(
                                 onClick = { imagePickerLauncher.launch("image/*") },
