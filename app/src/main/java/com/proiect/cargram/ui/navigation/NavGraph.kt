@@ -43,6 +43,13 @@ fun AuthNavGraph(
     // Handle navigation based on authentication state
     LaunchedEffect(uiState.isAuthenticated, uiState.hasVehicleProfile, uiState.registrationComplete) {
         when {
+            // User is not authenticated - go to login
+            !uiState.isAuthenticated -> {
+                navController.navigate(Screen.Login.createRoute()) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
             // After successful registration and vehicle profile setup
             uiState.isAuthenticated && uiState.hasVehicleProfile && uiState.registrationComplete -> {
                 navController.navigate(Screen.MainFeed.route) {
@@ -89,6 +96,9 @@ fun AuthNavGraph(
                 darkMode = darkMode,
                 onRegistrationSuccess = { email ->
                     navController.navigate(Screen.VehicleProfile.route)
+                },
+                onNavigateToLogin = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -103,24 +113,32 @@ fun AuthNavGraph(
         }
 
         composable(Screen.MainFeed.route) {
-            val feedViewModel = hiltViewModel<FeedViewModel>()
-            FeedScreen(
-                viewModel = feedViewModel,
-                darkMode = darkMode,
-                onNavigateToCreatePost = {
-                    navController.navigate(Screen.CreatePost.route)
-                },
-                onNavigateToProfile = { currentUserId ->
-                    navController.navigate(Screen.Profile.createRoute(currentUserId))
-                },
-                onNavigateToSettings = { navController.navigate("settings") },
-                onNavigateToNotifications = {
-                    // TODO: Implement notifications navigation
-                },
-                onNavigateToMessages = {
-                    // TODO: Implement messages navigation
+            if (!uiState.isAuthenticated) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.Login.createRoute()) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
-            )
+            } else {
+                val feedViewModel = hiltViewModel<FeedViewModel>()
+                FeedScreen(
+                    viewModel = feedViewModel,
+                    darkMode = darkMode,
+                    onNavigateToCreatePost = {
+                        navController.navigate(Screen.CreatePost.route)
+                    },
+                    onNavigateToProfile = { currentUserId ->
+                        navController.navigate(Screen.Profile.createRoute(currentUserId))
+                    },
+                    onNavigateToSettings = { navController.navigate("settings") },
+                    onNavigateToNotifications = {
+                        // TODO: Implement notifications navigation
+                    },
+                    onNavigateToMessages = {
+                        // TODO: Implement messages navigation
+                    }
+                )
+            }
         }
 
         composable(Screen.Search.route) {
@@ -134,44 +152,67 @@ fun AuthNavGraph(
                 nullable = true
             })
         ) {
-            val profileViewModel = hiltViewModel<ProfileViewModel>()
-            val uiState by profileViewModel.uiState.collectAsState()
-            ProfileScreen(
-                uiState = uiState,
-                darkMode = darkMode,
-                onReload = { profileViewModel.loadProfile() },
-                onProfileImageSelected = { uri -> profileViewModel.uploadProfilePicture(uri) },
-                onNavigateHome = { navController.navigate(Screen.MainFeed.route) },
-                onNavigateCreatePost = { navController.navigate(Screen.CreatePost.route) },
-                onNavigateProfile = {
-                    val userId = profileViewModel.uiState.value.user?.id
-                    navController.navigate(Screen.Profile.createRoute(userId))
-                },
-                onNavigateSettings = { navController.navigate("settings") }
-            )
+            if (!uiState.isAuthenticated) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.Login.createRoute()) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            } else {
+                val profileViewModel = hiltViewModel<ProfileViewModel>()
+                val uiState by profileViewModel.uiState.collectAsState()
+                ProfileScreen(
+                    uiState = uiState,
+                    darkMode = darkMode,
+                    onReload = { profileViewModel.loadProfile() },
+                    onProfileImageSelected = { uri -> profileViewModel.uploadProfilePicture(uri) },
+                    onNavigateHome = { navController.navigate(Screen.MainFeed.route) },
+                    onNavigateCreatePost = { navController.navigate(Screen.CreatePost.route) },
+                    onNavigateProfile = {
+                        val userId = profileViewModel.uiState.value.user?.id
+                        navController.navigate(Screen.Profile.createRoute(userId))
+                    },
+                    onNavigateSettings = { navController.navigate("settings") }
+                )
+            }
         }
 
         composable(Screen.CreatePost.route) {
-            CreatePostScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                darkMode = darkMode
-            )
+            if (!uiState.isAuthenticated) {
+                LaunchedEffect(Unit) {
+                    navController.navigate(Screen.Login.createRoute()) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            } else {
+                CreatePostScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    darkMode = darkMode
+                )
+            }
         }
 
         composable("settings") {
-            val authViewModel = hiltViewModel<AuthViewModel>()
-            SettingsScreen(
-                darkMode = darkMode,
-                onLogout = {
-                    authViewModel.signOut()
+            if (!uiState.isAuthenticated) {
+                LaunchedEffect(Unit) {
                     navController.navigate(Screen.Login.createRoute()) {
                         popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
                     }
                 }
-            )
+            } else {
+                SettingsScreen(
+                    darkMode = darkMode,
+                    onLogout = {
+                        authViewModel.signOut()
+                        navController.navigate(Screen.Login.createRoute()) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
         }
     }
 } 

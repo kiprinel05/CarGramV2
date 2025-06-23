@@ -34,6 +34,25 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
+    init {
+        checkInitialAuthState()
+    }
+
+    private fun checkInitialAuthState() {
+        val currentUser = authRepository.getCurrentUser()
+        if (currentUser != null) {
+            // User is already authenticated, check if they have a vehicle profile
+            viewModelScope.launch {
+                val hasVehicle = vehicleRepository.getVehicleForUser(currentUser.uid) != null
+                _uiState.value = _uiState.value.copy(
+                    isAuthenticated = true,
+                    hasVehicleProfile = hasVehicle,
+                    registrationComplete = true
+                )
+            }
+        }
+    }
+
     fun signIn(email: String, password: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)

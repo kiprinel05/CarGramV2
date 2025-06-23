@@ -23,7 +23,8 @@ import com.proiect.cargram.ui.viewmodel.AuthViewModel
 fun RegisterScreen(
     viewModel: AuthViewModel,
     darkMode: Boolean = false,
-    onRegistrationSuccess: (String) -> Unit
+    onRegistrationSuccess: (String) -> Unit,
+    onNavigateToLogin: () -> Unit
 ) {
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -149,7 +150,7 @@ fun RegisterScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Already have an account?")
-                        TextButton(onClick = { onRegistrationSuccess(email) }) {
+                        TextButton(onClick = { onNavigateToLogin() }) {
                             Text("Login")
                         }
                     }
