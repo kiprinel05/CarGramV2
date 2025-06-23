@@ -29,6 +29,7 @@ data class ProfileUiState(
     val isLoading: Boolean = false,
     val isCurrentUser: Boolean = false,
     val user: User? = null,
+    val vehicle: Vehicle? = null,
     val posts: List<Post> = emptyList(),
     val error: String? = null
 )
@@ -53,31 +54,17 @@ class ProfileViewModel @Inject constructor(
 
     fun loadProfile() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            
-            val userId: String? = savedStateHandle.get("userId")
-            val profileUserId = userId ?: authRepository.getCurrentUser()?.uid
-
-            if (profileUserId == null) {
-                _uiState.update { it.copy(isLoading = false, error = "User not found.") }
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            val firebaseUserId = authRepository.getCurrentUser()?.uid
+            if (firebaseUserId == null) {
+                _uiState.value = _uiState.value.copy(isLoading = false, error = "User not found.")
                 return@launch
             }
-
-            val isCurrentUserProfile = userId == null || userId == authRepository.getCurrentUser()?.uid
-            _uiState.update { it.copy(isCurrentUser = isCurrentUserProfile) }
-
-            // Load user details
-            try {
-                val userSnapshot = firestore.collection("users").document(profileUserId).get().await()
-                val user = userSnapshot.toObject(User::class.java)
-                _uiState.update { it.copy(user = user) }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Failed to load user profile.") }
-            }
-
-            // Load user posts
-            postRepository.getPostsForUser(profileUserId).collect { posts ->
-                _uiState.update { it.copy(posts = posts, isLoading = false) }
+            val user = userDao.getUserById(firebaseUserId)
+            val vehicle = vehicleRepository.getVehicleForUser(firebaseUserId)
+            _uiState.value = _uiState.value.copy(user = user, vehicle = vehicle)
+            postRepository.getPostsForUser(firebaseUserId).collect { posts ->
+                _uiState.value = _uiState.value.copy(posts = posts, isLoading = false)
             }
         }
     }
@@ -86,12 +73,11 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             val firebaseUser = authRepository.getCurrentUser()
             if (firebaseUser == null) {
-                _uiState.update { it.copy(error = "User not authenticated") }
+                _uiState.value = _uiState.value.copy(error = "User not authenticated")
                 return@launch
             }
             try {
-                _uiState.update { it.copy(isLoading = true) }
-                // Copiază imaginea în cache local
+                _uiState.value = _uiState.value.copy(isLoading = true)
                 val inputStream = context.contentResolver.openInputStream(uri)
                 val file = File(context.cacheDir, "profile_${firebaseUser.uid}.jpg")
                 inputStream?.use { input ->
@@ -103,7 +89,7 @@ class ProfileViewModel @Inject constructor(
                 userDao.updateProfilePicturePath(firebaseUser.uid, localPath)
                 loadProfile()
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Failed to save profile picture: ${e.message}", isLoading = false) }
+                _uiState.value = _uiState.value.copy(error = "Failed to save profile picture: ${e.message}", isLoading = false)
             }
         }
     }
