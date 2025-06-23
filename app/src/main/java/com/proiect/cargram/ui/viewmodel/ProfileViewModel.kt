@@ -15,8 +15,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
 import android.net.Uri
 import com.google.firebase.storage.FirebaseStorage
 import com.proiect.cargram.data.local.UserDao
@@ -24,6 +22,7 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import androidx.lifecycle.SavedStateHandle
+import android.util.Log
 
 data class ProfileUiState(
     val isLoading: Boolean = false,
@@ -42,7 +41,6 @@ class ProfileViewModel @Inject constructor(
     private val userDao: UserDao,
     @ApplicationContext private val context: Context,
     private val storage: FirebaseStorage,
-    private val firestore: FirebaseFirestore,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -55,18 +53,41 @@ class ProfileViewModel @Inject constructor(
     fun loadProfile() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            val firebaseUserId = authRepository.getCurrentUser()?.uid
-            if (firebaseUserId == null) {
+            
+            val savedStateUserId = savedStateHandle.get<String>("userId")
+            val currentUser = authRepository.getCurrentUser()
+            
+            // Use currentUser.uid if savedStateUserId is null or blank
+            val profileUserId = if (savedStateUserId.isNullOrBlank()) {
+                currentUser?.uid
+            } else {
+                savedStateUserId
+            }
+            
+            if (profileUserId.isNullOrBlank()) {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = "User not found.")
                 return@launch
             }
-            val user = userDao.getUserById(firebaseUserId)
-            val vehicle = vehicleRepository.getVehicleForUser(firebaseUserId)
+            
+            val user = userDao.getUserById(profileUserId)
+            
+            if (user == null) {
+                _uiState.value = _uiState.value.copy(isLoading = false, error = "User not found in database.")
+                return@launch
+            }
+            
+            val vehicle = vehicleRepository.getVehicleForUser(profileUserId)
+            
             _uiState.value = _uiState.value.copy(user = user, vehicle = vehicle)
-            postRepository.getPostsForUser(firebaseUserId).collect { posts ->
+            
+            postRepository.getPostsForUser(profileUserId).collect { posts ->
                 _uiState.value = _uiState.value.copy(posts = posts, isLoading = false)
             }
         }
+    }
+
+    fun reloadProfile() {
+        loadProfile()
     }
 
     fun uploadProfilePicture(uri: Uri) {
@@ -87,6 +108,7 @@ class ProfileViewModel @Inject constructor(
                 }
                 val localPath = file.absolutePath
                 userDao.updateProfilePicturePath(firebaseUser.uid, localPath)
+                Log.d("ProfileDebug", "Profile picture updated: $localPath")
                 loadProfile()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = "Failed to save profile picture: ${e.message}", isLoading = false)

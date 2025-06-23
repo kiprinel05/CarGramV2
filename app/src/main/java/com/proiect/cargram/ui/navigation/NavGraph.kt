@@ -104,8 +104,8 @@ fun AuthNavGraph(
                 onNavigateToSearch = {
                     navController.navigate(Screen.Search.route)
                 },
-                onNavigateToProfile = {
-                    navController.navigate(Screen.Profile.createRoute())
+                onNavigateToProfile = { currentUserId ->
+                    navController.navigate(Screen.Profile.createRoute(currentUserId))
                 },
                 onNavigateToCreatePost = {
                     navController.navigate(Screen.CreatePost.route)

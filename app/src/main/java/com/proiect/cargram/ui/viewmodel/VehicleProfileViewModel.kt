@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.proiect.cargram.data.model.Vehicle
 import com.proiect.cargram.data.repository.VehicleRepository
+import com.proiect.cargram.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,8 @@ data class VehicleProfileUiState(
 
 @HiltViewModel
 class VehicleProfileViewModel @Inject constructor(
-    private val vehicleRepository: VehicleRepository
+    private val vehicleRepository: VehicleRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(VehicleProfileUiState())
@@ -38,7 +40,7 @@ class VehicleProfileViewModel @Inject constructor(
             
             _uiState.update { it.copy(isLoading = true, error = null) }
             
-            val userId = "temp_user_id" // This should come from AuthRepository
+            val userId = authRepository.getCurrentUser()?.uid ?: "temp_user_id"
             vehicleRepository.getVehicleDetails(vin, userId)
                 .onSuccess { vehicle ->
                     Log.d("VehicleProfileVM", "VIN decode successful: $vehicle")
@@ -92,8 +94,20 @@ class VehicleProfileViewModel @Inject constructor(
         Log.d("VehicleProfileVM", "Vehicle updated: ${_uiState.value.vehicle}")
     }
 
-    fun saveVehicle(userId: String) {
+    fun saveVehicle() {
         viewModelScope.launch {
+            val userId = authRepository.getCurrentUser()?.uid
+            if (userId.isNullOrBlank()) {
+                Log.e("VehicleProfileVM", "No authenticated user found")
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false,
+                        error = "No authenticated user found"
+                    )
+                }
+                return@launch
+            }
+            
             Log.d("VehicleProfileVM", "Saving vehicle for user: $userId")
             _uiState.update { it.copy(isLoading = true, error = null) }
             

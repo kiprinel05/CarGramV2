@@ -1,5 +1,6 @@
 package com.proiect.cargram.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.proiect.cargram.data.repository.AuthRepository
@@ -14,8 +15,6 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
 
 data class AuthUiState(
     val isLoading: Boolean = false,
@@ -29,8 +28,7 @@ data class AuthUiState(
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val vehicleRepository: VehicleRepository,
-    private val userDao: UserDao,
-    private val firestore: FirebaseFirestore
+    private val userDao: UserDao
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -47,8 +45,8 @@ class AuthViewModel @Inject constructor(
                             var existingUser = userDao.getUserById(firebaseUser.uid)
                             var username = existingUser?.username
                             if (username.isNullOrBlank()) {
-                                val firestoreUser = firestore.collection("users").document(firebaseUser.uid).get().await()
-                                username = firestoreUser.getString("username") ?: firebaseUser.displayName ?: "user"
+                                // Dacă userul nu există în Room, îl creăm cu datele de bază
+                                username = firebaseUser.displayName ?: "user"
                             }
                             val user = User(
                                 id = firebaseUser.uid,
@@ -77,20 +75,39 @@ class AuthViewModel @Inject constructor(
     fun signUp(email: String, password: String, username: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            Log.d("AuthDebug", "Starting signUp for email: $email, username: $username")
+            
             authRepository.signUp(email, password, username)
                 .onSuccess {
                     val firebaseUser = authRepository.getCurrentUser()
+                    Log.d("AuthDebug", "SignUp successful, firebaseUser: ${firebaseUser?.uid}")
+                    Log.d("AuthDebug", "Firebase user email: ${firebaseUser?.email}")
+                    Log.d("AuthDebug", "Firebase user displayName: ${firebaseUser?.displayName}")
+                    
                     if (firebaseUser != null) {
                         withContext(Dispatchers.IO) {
                             val existingUser = userDao.getUserById(firebaseUser.uid)
+                            Log.d("AuthDebug", "Existing user in Room: $existingUser")
+                            
                             val user = User(
                                 id = firebaseUser.uid,
                                 username = username,
                                 email = firebaseUser.email ?: "",
                                 profilePicturePath = existingUser?.profilePicturePath ?: ""
                             )
+                            Log.d("AuthDebug", "Creating user for Room: $user")
                             userDao.insertUser(user)
+                            
+                            // Verify the user was saved
+                            val savedUser = userDao.getUserById(firebaseUser.uid)
+                            Log.d("AuthDebug", "User saved to Room: $savedUser")
+                            
+                            // Test AuthRepository again after saving
+                            val testCurrentUser = authRepository.getCurrentUser()
+                            Log.d("AuthDebug", "AuthRepository.getCurrentUser() after save: ${testCurrentUser?.uid}")
                         }
+                    } else {
+                        Log.e("AuthDebug", "Firebase user is null after signUp")
                     }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -101,6 +118,7 @@ class AuthViewModel @Inject constructor(
                     )
                 }
                 .onFailure { exception ->
+                    Log.e("AuthDebug", "SignUp failed", exception)
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = exception.message

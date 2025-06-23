@@ -91,7 +91,7 @@ fun BottomNavBar(
 fun FeedScreen(
     viewModel: FeedViewModel,
     onNavigateToSearch: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {},
+    onNavigateToProfile: (String?) -> Unit = {},
     onNavigateToCreatePost: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
     onNavigateToMessages: () -> Unit = {}
@@ -113,7 +113,7 @@ fun FeedScreen(
             topBar = {
                 FeedTopBar(
                     onSearchClick = onNavigateToSearch,
-                    onProfileClick = onNavigateToProfile,
+                    onProfileClick = { onNavigateToProfile(currentUserId) },
                     onNotificationsClick = onNavigateToNotifications,
                     onMessagesClick = onNavigateToMessages
                 )
@@ -125,7 +125,7 @@ fun FeedScreen(
                         when (item) {
                             BottomNavItem.Home -> {} // Already on home
                             BottomNavItem.CreatePost -> onNavigateToCreatePost()
-                            BottomNavItem.Profile -> onNavigateToProfile()
+                            BottomNavItem.Profile -> onNavigateToProfile(currentUserId)
                         }
                     }
                 )

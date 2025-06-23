@@ -4,14 +4,11 @@ import android.content.Context
 import android.net.Uri
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.proiect.cargram.data.local.PostDao
 import com.proiect.cargram.data.local.UserDao
 import com.proiect.cargram.data.model.Post
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
@@ -25,10 +22,10 @@ interface PostRepository {
     suspend fun unlikePost(postId: String, userId: String): Result<Unit>
     suspend fun sharePost(postId: String): Result<Unit>
     suspend fun getPostById(postId: String): Result<Post>
+    suspend fun createPostFromCloud(post: Post)
 }
 
 class PostRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val postDao: PostDao,
     private val userDao: UserDao,
@@ -36,12 +33,10 @@ class PostRepositoryImpl @Inject constructor(
 ) : PostRepository {
 
     override fun getPostsFlow(): Flow<List<Post>> {
-        // Now primarily fetches from local DB for the feed
         return postDao.getAllPosts()
     }
 
     override fun getPostsForUser(userId: String): Flow<List<Post>> {
-        // Fetches from local DB for a specific user profile
         return postDao.getPostsForUser(userId)
     }
 
@@ -51,8 +46,7 @@ class PostRepositoryImpl @Inject constructor(
             var localUser = userDao.getUserById(user.uid)
             var username = localUser?.username
             if (username.isNullOrBlank()) {
-                val firestoreUser = firestore.collection("users").document(user.uid).get().await()
-                username = firestoreUser.getString("username") ?: user.displayName ?: "User"
+                username = user.displayName ?: "User"
                 // Update local Room user cu username-ul corect
                 val updatedUser = localUser?.copy(username = username) ?: com.proiect.cargram.data.model.User(
                     id = user.uid,
@@ -79,22 +73,6 @@ class PostRepositoryImpl @Inject constructor(
             )
             // 3. Save full post to local database
             postDao.insertPost(localPost)
-            // 4. Create data map for Firestore (without image path)
-            val firestorePostData = mapOf(
-                "id" to postId,
-                "userId" to localPost.userId,
-                "username" to localPost.username,
-                "userProfilePicture" to localPost.userProfilePicture,
-                "caption" to localPost.caption,
-                "timestamp" to localPost.timestamp,
-                "likes" to localPost.likes,
-                "comments" to localPost.comments,
-                "shares" to localPost.shares,
-                "likedBy" to localPost.likedBy,
-                "vehicleId" to localPost.vehicleId
-            )
-            // 5. Save metadata-only to Firestore
-            firestore.collection("posts").document(postId).set(firestorePostData).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -114,21 +92,7 @@ class PostRepositoryImpl @Inject constructor(
     
     override suspend fun likePost(postId: String, userId: String): Result<Unit> {
         return try {
-            // Actualizare Firestore (cum e deja)
-            val postRef = firestore.collection("posts").document(postId)
-            firestore.runTransaction { transaction ->
-                val snapshot = transaction.get(postRef)
-                val post = snapshot.toObject(Post::class.java)
-                val currentLikes = post?.likes ?: 0
-                val currentLikedBy = post?.likedBy ?: listOf<String>()
-                if (userId !in currentLikedBy) {
-                    transaction.update(postRef, mapOf(
-                        "likes" to currentLikes + 1,
-                        "likedBy" to currentLikedBy + userId
-                    ))
-                }
-            }.await()
-            // Actualizare și în Room
+            // Actualizare în Room
             val localPost = postDao.getPostById(postId)
             if (localPost != null) {
                 val updatedPost = localPost.copy(
@@ -145,21 +109,7 @@ class PostRepositoryImpl @Inject constructor(
     
     override suspend fun unlikePost(postId: String, userId: String): Result<Unit> {
         return try {
-            // Actualizare Firestore (cum e deja)
-            val postRef = firestore.collection("posts").document(postId)
-            firestore.runTransaction { transaction ->
-                val snapshot = transaction.get(postRef)
-                val post = snapshot.toObject(Post::class.java)
-                val currentLikes = post?.likes ?: 0
-                val currentLikedBy = post?.likedBy ?: listOf<String>()
-                if (userId in currentLikedBy) {
-                    transaction.update(postRef, mapOf(
-                        "likes" to (currentLikes - 1).coerceAtLeast(0),
-                        "likedBy" to currentLikedBy - userId
-                    ))
-                }
-            }.await()
-            // Actualizare și în Room
+            // Actualizare în Room
             val localPost = postDao.getPostById(postId)
             if (localPost != null) {
                 val updatedPost = localPost.copy(
@@ -176,12 +126,11 @@ class PostRepositoryImpl @Inject constructor(
     
     override suspend fun sharePost(postId: String): Result<Unit> {
         return try {
-            val postRef = firestore.collection("posts").document(postId)
-            firestore.runTransaction { transaction ->
-                val snapshot = transaction.get(postRef)
-                val currentShares = snapshot.getLong("shares") ?: 0
-                transaction.update(postRef, "shares", currentShares + 1)
-            }.await()
+            val localPost = postDao.getPostById(postId)
+            if (localPost != null) {
+                val updatedPost = localPost.copy(shares = localPost.shares + 1)
+                postDao.insertPost(updatedPost)
+            }
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -190,8 +139,7 @@ class PostRepositoryImpl @Inject constructor(
     
     override suspend fun getPostById(postId: String): Result<Post> {
         return try {
-            val snapshot = firestore.collection("posts").document(postId).get().await()
-            val post = snapshot.toObject(Post::class.java)?.copy(id = snapshot.id)
+            val post = postDao.getPostById(postId)
             if (post != null) {
                 Result.success(post)
             } else {
@@ -200,5 +148,9 @@ class PostRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override suspend fun createPostFromCloud(post: Post) {
+        postDao.insertPost(post)
     }
 } 

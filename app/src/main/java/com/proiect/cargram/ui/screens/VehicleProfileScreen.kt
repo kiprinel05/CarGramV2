@@ -22,7 +22,6 @@ import com.proiect.cargram.R
 import com.proiect.cargram.ui.viewmodel.VehicleProfileViewModel
 import com.proiect.cargram.data.model.Vehicle
 import android.util.Log
-import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun VehicleProfileScreen(
@@ -184,8 +183,7 @@ fun VehicleProfileScreen(
             // Continue button
             Button(
                 onClick = {
-                    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-                    viewModel.saveVehicle(userId)
+                    viewModel.saveVehicle()
                     onProfileComplete()
                 },
                 modifier = Modifier

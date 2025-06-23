@@ -1,14 +1,12 @@
 package com.proiect.cargram.data.repository
 
 import android.util.Log
-import com.google.firebase.firestore.FirebaseFirestore
 import com.proiect.cargram.data.api.VinDecoderApi
 import com.proiect.cargram.data.local.VehicleDao
 import com.proiect.cargram.data.model.Vehicle
 import com.proiect.cargram.di.VinDecoderApiKey
 import com.proiect.cargram.di.VinDecoderSecretKey
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import javax.inject.Inject
@@ -22,7 +20,6 @@ interface VehicleRepository {
 
 @Singleton
 class VehicleRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore,
     private val vinDecoderApi: VinDecoderApi,
     private val vehicleDao: VehicleDao,
     private val authRepository: AuthRepository,
@@ -108,23 +105,11 @@ class VehicleRepositoryImpl @Inject constructor(
     override suspend fun saveVehicle(vehicle: Vehicle, userId: String): Result<Unit> {
         return try {
             val vehicleWithUser = vehicle.copy(userId = userId)
-            firestore.collection("vehicles")
-                .add(vehicleWithUser)
-                .await()
+            // Salvează în Room
+            withContext(Dispatchers.IO) {
+                vehicleDao.insertVehicle(vehicleWithUser)
+            }
             Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getVehiclesByUser(userId: String): Result<List<Vehicle>> {
-        return try {
-            val vehicles = firestore.collection("vehicles")
-                .whereEqualTo("userId", userId)
-                .get()
-                .await()
-                .toObjects(Vehicle::class.java)
-            Result.success(vehicles)
         } catch (e: Exception) {
             Result.failure(e)
         }
