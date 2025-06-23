@@ -119,7 +119,7 @@ fun ProfileScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.padding(vertical = 24.dp, horizontal = 12.dp)
                             ) {
-                                // Avatar + cameră
+                                // Avatar + camera
                                 Box(contentAlignment = Alignment.BottomEnd) {
                                     val profilePicPath = user?.profilePicturePath
                                     val painter = if (!profilePicPath.isNullOrBlank()) {
@@ -174,7 +174,7 @@ fun ProfileScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Button(
-                                onClick = { /* TODO: Edit profile */ },
+                                onClick = { /* TODO - edit profile */ },
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
@@ -182,7 +182,7 @@ fun ProfileScreen(
                                 Text("Edit profile", fontWeight = FontWeight.Bold)
                             }
                             Button(
-                                onClick = { /* TODO: Share profile */ },
+                                onClick = { /* TODO - share profile */ },
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)

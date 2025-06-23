@@ -129,7 +129,6 @@ fun VehicleProfileScreen(
                 }
             }
 
-            // Divider with "or"
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -203,7 +202,6 @@ fun VehicleProfileScreen(
                 Text("Continue")
             }
 
-            // Add some padding at the bottom for better scrolling
             Spacer(modifier = Modifier.height(32.dp))
         }
 

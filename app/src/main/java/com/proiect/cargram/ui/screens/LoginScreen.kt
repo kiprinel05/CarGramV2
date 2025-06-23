@@ -29,7 +29,6 @@ fun LoginScreen(
     
     val uiState by viewModel.uiState.collectAsState()
 
-    // Clear error when email or password changes
     LaunchedEffect(email, password) {
         if (uiState.error != null) {
             viewModel.clearError()
@@ -44,7 +43,6 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Logo
             Image(
                 painter = painterResource(id = R.drawable.app_logo),
                 contentDescription = stringResource(id = R.string.logo_image_description),
@@ -62,7 +60,6 @@ fun LoginScreen(
                     modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Login text
                     Text(
                         text = "Login into your account",
                         style = MaterialTheme.typography.headlineSmall,
@@ -75,7 +72,6 @@ fun LoginScreen(
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
 
-                    // Email field
                     AuthTextField(
                         value = email,
                         onValueChange = { email = it },
@@ -86,7 +82,6 @@ fun LoginScreen(
                             .padding(bottom = 16.dp)
                     )
 
-                    // Password field
                     AuthTextField(
                         value = password,
                         onValueChange = { password = it },
@@ -98,7 +93,6 @@ fun LoginScreen(
                             .padding(bottom = 24.dp)
                     )
 
-                    // Login button
                     Button(
                         onClick = { viewModel.signIn(email, password) },
                         modifier = Modifier
@@ -116,7 +110,6 @@ fun LoginScreen(
                         }
                     }
 
-                    // Register link
                     Row(
                         modifier = Modifier.padding(top = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -127,7 +120,6 @@ fun LoginScreen(
                         }
                     }
 
-                    // Error message
                     uiState.error?.let { error ->
                         Text(
                             text = error,

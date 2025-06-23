@@ -57,7 +57,7 @@ class FeedViewModel @Inject constructor(
             postRepository.getFavoritesForUser(userId).collectLatest { favorites ->
                 val favIds = favorites.map { it.postId }.toSet()
                 _uiState.value = _uiState.value.copy(favoritePostIds = favIds)
-                // Refiltrăm postările dacă suntem pe tab-ul de favorite
+
                 if (_uiState.value.selectedTab == FeedTab.FAVORITES) {
                     filterPostsByTab(_uiState.value.posts, favIds)
                 }
@@ -118,7 +118,6 @@ class FeedViewModel @Inject constructor(
     fun setTab(tab: FeedTab) {
         savedStateHandle[TAB_KEY] = tab
         _uiState.value = _uiState.value.copy(selectedTab = tab, isLoading = true)
-        // Refiltrăm postările la schimbarea tab-ului
         loadPosts()
     }
 

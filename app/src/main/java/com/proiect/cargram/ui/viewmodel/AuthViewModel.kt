@@ -41,7 +41,6 @@ class AuthViewModel @Inject constructor(
     private fun checkInitialAuthState() {
         val currentUser = authRepository.getCurrentUser()
         if (currentUser != null) {
-            // User is already authenticated, check if they have a vehicle profile
             viewModelScope.launch {
                 val hasVehicle = vehicleRepository.getVehicleForUser(currentUser.uid) != null
                 _uiState.value = _uiState.value.copy(
@@ -64,7 +63,6 @@ class AuthViewModel @Inject constructor(
                             var existingUser = userDao.getUserById(firebaseUser.uid)
                             var username = existingUser?.username
                             if (username.isNullOrBlank()) {
-                                // Dacă userul nu există în Room, îl creăm cu datele de bază
                                 username = firebaseUser.displayName ?: "user"
                             }
                             val user = User(

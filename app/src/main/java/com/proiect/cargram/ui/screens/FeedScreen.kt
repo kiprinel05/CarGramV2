@@ -119,7 +119,6 @@ fun FeedScreen(
     val currentUserId = viewModel.getCurrentUserId()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background Image
         Image(
             painter = painterResource(
                 id = if (darkMode) R.drawable.background_darkmode else R.drawable.background
@@ -129,7 +128,6 @@ fun FeedScreen(
             contentScale = ContentScale.FillBounds
         )
 
-        // Main Content
         Scaffold(
             topBar = {
                 FeedTopBar(
@@ -144,7 +142,7 @@ fun FeedScreen(
                     currentRoute = BottomNavItem.Home.route,
                     onNavigate = { item ->
                         when (item) {
-                            BottomNavItem.Home -> {} // Already on home
+                            BottomNavItem.Home -> {} // already on home
                             BottomNavItem.CreatePost -> onNavigateToCreatePost()
                             BottomNavItem.Profile -> currentUserId?.let { onNavigateToProfile(it) }
                             BottomNavItem.Settings -> onNavigateToSettings()
@@ -152,14 +150,13 @@ fun FeedScreen(
                     }
                 )
             },
-            containerColor = Color.Transparent // Make scaffold background transparent
+            containerColor = Color.Transparent // make scaffold background transparent
         ) { paddingValues ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                // Tabs For you / Favorites
                 FeedTabs(
                     selectedTab = uiState.selectedTab,
                     onTabSelected = { viewModel.setTab(it) }
@@ -237,7 +234,6 @@ fun FeedTopBar(
             }
         },
         actions = {
-            // Sort button
             Box {
                 IconButton(
                     onClick = { showSortMenu = true }
@@ -391,14 +387,12 @@ fun PostCard(
         )
     ) {
         Column {
-            // Post header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // User profile picture
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(post.userProfilePicture)
@@ -420,7 +414,7 @@ fun PostCard(
                         .padding(horizontal = 12.dp)
                 )
                 IconButton(
-                    onClick = { /* Show more options */ },
+                    onClick = { /*  */ },
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
@@ -430,7 +424,6 @@ fun PostCard(
                     )
                 }
             }
-            // Post image
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -446,7 +439,6 @@ fun PostCard(
                     contentScale = ContentScale.Crop
                 )
             }
-            // Action buttons
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -454,7 +446,6 @@ fun PostCard(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Like button and count
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -481,7 +472,7 @@ fun PostCard(
                             contentDescription = "Like",
                             modifier = Modifier.size(24.dp),
                             colorFilter = if (currentUserId != null && post.likedBy.contains(currentUserId)) {
-                                ColorFilter.tint(Color(0xFFE91E63)) // Pink color for liked
+                                ColorFilter.tint(Color(0xFFE91E63)) // pink color for liked
                             } else {
                                 ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
                             }
@@ -493,7 +484,6 @@ fun PostCard(
                         modifier = Modifier.padding(end = 16.dp)
                     )
                 }
-                // Favorite button
                 IconButton(
                     onClick = onFavoriteClick,
                     modifier = Modifier.size(40.dp)
@@ -506,7 +496,6 @@ fun PostCard(
                     )
                 }
             }
-            // Caption
             if (!post.caption.isNullOrBlank()) {
                 Text(
                     text = post.caption,

@@ -47,12 +47,12 @@ class CreatePostViewModel @Inject constructor(
         val currentState = _uiState.value
         
         if (currentState.selectedImageUri == null) {
-            onError("Te rog selectează o imagine")
+            onError("Selecteaza o imagine")
             return
         }
         
         if (currentState.caption.isEmpty()) {
-            onError("Te rog adaugă o descriere")
+            onError("Adauga o descriere")
             return
         }
 
@@ -75,20 +75,20 @@ class CreatePostViewModel @Inject constructor(
                         _uiState.update { 
                             it.copy(
                                 isLoading = false, 
-                                error = exception.message ?: "A apărut o eroare la crearea postării"
+                                error = exception.message ?: "Eroare la crearea postarii"
                             ) 
                         }
-                        onError(exception.message ?: "A apărut o eroare la crearea postării")
+                        onError(exception.message ?: "Eroare la crearea postarii")
                     }
                 )
             } catch (e: Exception) {
                 _uiState.update { 
                     it.copy(
                         isLoading = false, 
-                        error = e.message ?: "A apărut o eroare la crearea postării"
+                        error = e.message ?: "Eroare la crearea postarii"
                     ) 
                 }
-                onError(e.message ?: "A apărut o eroare la crearea postării")
+                onError(e.message ?: "Eroare la crearea postarii")
             }
         }
     }

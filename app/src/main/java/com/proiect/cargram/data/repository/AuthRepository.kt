@@ -23,7 +23,6 @@ class AuthRepositoryImpl @Inject constructor(
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             Log.d("AuthRepoDebug", "Firebase user created: ${result.user?.uid}")
             
-            // Update display name for the user
             result.user?.let { firebaseUser ->
                 val profileUpdates = com.google.firebase.auth.UserProfileChangeRequest.Builder()
                     .setDisplayName(username)

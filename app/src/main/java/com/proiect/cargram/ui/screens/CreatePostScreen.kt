@@ -49,7 +49,6 @@ fun CreatePostScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background Image
         Image(
             painter = painterResource(
                 id = if (darkMode) R.drawable.background_darkmode else R.drawable.background
@@ -74,7 +73,6 @@ fun CreatePostScreen(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Image selection area
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -111,7 +109,6 @@ fun CreatePostScreen(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                // Caption input
                 OutlinedTextField(
                     value = uiState.caption,
                     onValueChange = { viewModel.setCaption(it) },
@@ -132,7 +129,7 @@ fun CreatePostScreen(
                     onClick = {
                         viewModel.createPost(
                             onSuccess = { onNavigateBack() },
-                            onError = { /* Handle error */ }
+                            onError = { /* error */ }
                         )
                     },
                     enabled = uiState.selectedImageUri != null && uiState.caption.isNotEmpty(),
@@ -148,7 +145,6 @@ fun CreatePostScreen(
             }
         }
         
-        // Loading indicator
         if (uiState.isLoading) {
             Box(
                 modifier = Modifier

@@ -40,23 +40,19 @@ fun AuthNavGraph(
 ) {
     val uiState by authViewModel.uiState.collectAsState()
 
-    // Handle navigation based on authentication state
     LaunchedEffect(uiState.isAuthenticated, uiState.hasVehicleProfile, uiState.registrationComplete) {
         when {
-            // User is not authenticated - go to login
             !uiState.isAuthenticated -> {
                 navController.navigate(Screen.Login.createRoute()) {
                     popUpTo(0) { inclusive = true }
                     launchSingleTop = true
                 }
             }
-            // After successful registration and vehicle profile setup
             uiState.isAuthenticated && uiState.hasVehicleProfile && uiState.registrationComplete -> {
                 navController.navigate(Screen.MainFeed.route) {
                     popUpTo(Screen.Login.route) { inclusive = true }
                 }
             }
-            // After successful login
             uiState.isAuthenticated && !uiState.registrationComplete -> {
                 navController.navigate(Screen.MainFeed.route) {
                     popUpTo(Screen.Login.route) { inclusive = true }
@@ -132,17 +128,17 @@ fun AuthNavGraph(
                     },
                     onNavigateToSettings = { navController.navigate("settings") },
                     onNavigateToNotifications = {
-                        // TODO: Implement notifications navigation
+                        // TODO - implement notifications navigation
                     },
                     onNavigateToMessages = {
-                        // TODO: Implement messages navigation
+                        // TODO - implement messages navigation
                     }
                 )
             }
         }
 
         composable(Screen.Search.route) {
-            // TODO: Implement search screen
+            // TODO - implement search screen
         }
 
         composable(

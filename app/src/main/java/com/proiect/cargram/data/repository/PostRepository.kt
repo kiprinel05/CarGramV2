@@ -26,7 +26,6 @@ interface PostRepository {
     suspend fun getPostById(postId: String): Result<Post>
     suspend fun createPostFromCloud(post: Post)
 
-    // Favorite methods
     suspend fun addFavorite(postId: String, userId: String)
     suspend fun removeFavorite(postId: String, userId: String)
     fun getFavoritesForUser(userId: String): Flow<List<FavoritePost>>
@@ -56,7 +55,6 @@ class PostRepositoryImpl @Inject constructor(
             var username = localUser?.username
             if (username.isNullOrBlank()) {
                 username = user.displayName ?: "User"
-                // Update local Room user cu username-ul corect
                 val updatedUser = localUser?.copy(username = username) ?: com.proiect.cargram.data.model.User(
                     id = user.uid,
                     username = username,
@@ -66,10 +64,11 @@ class PostRepositoryImpl @Inject constructor(
                 userDao.insertUser(updatedUser)
                 localUser = updatedUser
             }
-            // 1. Copy image to internal storage and get local path
+
             val localImagePath = saveImageToInternalStorage(imageUri)
-            // 2. Create Post object for local database
+
             val postId = UUID.randomUUID().toString()
+
             val localPost = Post(
                 id = postId,
                 userId = user.uid,
@@ -80,7 +79,7 @@ class PostRepositoryImpl @Inject constructor(
                 timestamp = Timestamp.now(),
                 vehicleId = if (vehicleInfo.isNotEmpty()) vehicleInfo else null
             )
-            // 3. Save full post to local database
+
             postDao.insertPost(localPost)
             Result.success(Unit)
         } catch (e: Exception) {
@@ -101,7 +100,6 @@ class PostRepositoryImpl @Inject constructor(
     
     override suspend fun likePost(postId: String, userId: String): Result<Unit> {
         return try {
-            // Actualizare în Room
             val localPost = postDao.getPostById(postId)
             if (localPost != null) {
                 val updatedPost = localPost.copy(
@@ -118,7 +116,6 @@ class PostRepositoryImpl @Inject constructor(
     
     override suspend fun unlikePost(postId: String, userId: String): Result<Unit> {
         return try {
-            // Actualizare în Room
             val localPost = postDao.getPostById(postId)
             if (localPost != null) {
                 val updatedPost = localPost.copy(
@@ -163,7 +160,6 @@ class PostRepositoryImpl @Inject constructor(
         postDao.insertPost(post)
     }
 
-    // Favorite methods
     override suspend fun addFavorite(postId: String, userId: String) {
         favoriteDao.addFavorite(FavoritePost(postId = postId, userId = userId))
     }

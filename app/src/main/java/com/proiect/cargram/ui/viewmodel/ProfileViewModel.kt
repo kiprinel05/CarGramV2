@@ -55,7 +55,6 @@ class ProfileViewModel @Inject constructor(
             val savedStateUserId = savedStateHandle.get<String>("userId")
             val currentUser = authRepository.getCurrentUser()
             
-            // Use currentUser.uid if savedStateUserId is null or blank
             val profileUserId = if (savedStateUserId.isNullOrBlank()) {
                 currentUser?.uid
             } else {
@@ -63,14 +62,14 @@ class ProfileViewModel @Inject constructor(
             }
             
             if (profileUserId.isNullOrBlank()) {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = "User not found.")
+                _uiState.value = _uiState.value.copy(isLoading = false, error = "User not found")
                 return@launch
             }
             
             val user = userDao.getUserById(profileUserId)
             
             if (user == null) {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = "User not found in database.")
+                _uiState.value = _uiState.value.copy(isLoading = false, error = "User not found in database")
                 return@launch
             }
             

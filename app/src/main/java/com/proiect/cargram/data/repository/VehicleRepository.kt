@@ -79,7 +79,6 @@ class VehicleRepositoryImpl @Inject constructor(
                 )
                 
                 Log.d("VinDecoder", "Created vehicle object: $vehicle")
-                // Save to local database after fetching
                 withContext(Dispatchers.IO) {
                     vehicleDao.insertVehicle(vehicle)
                 }
@@ -105,7 +104,6 @@ class VehicleRepositoryImpl @Inject constructor(
     override suspend fun saveVehicle(vehicle: Vehicle, userId: String): Result<Unit> {
         return try {
             val vehicleWithUser = vehicle.copy(userId = userId)
-            // Salvează în Room
             withContext(Dispatchers.IO) {
                 vehicleDao.insertVehicle(vehicleWithUser)
             }

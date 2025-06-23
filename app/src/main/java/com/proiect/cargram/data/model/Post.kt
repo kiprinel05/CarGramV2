@@ -17,6 +17,6 @@ data class Post(
     val likes: Int = 0,
     val comments: Int = 0,
     val shares: Int = 0,
-    val likedBy: List<String> = emptyList(), // List of user IDs who liked the post
-    val vehicleId: String? = null // Reference to the vehicle featured in the post
-) 
+    val likedBy: List<String> = emptyList(),
+    val vehicleId: String? = null
+)
