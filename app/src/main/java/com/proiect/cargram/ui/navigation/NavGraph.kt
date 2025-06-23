@@ -14,6 +14,7 @@ import com.proiect.cargram.ui.viewmodel.AuthViewModel
 import com.proiect.cargram.ui.viewmodel.FeedViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.proiect.cargram.ui.viewmodel.ProfileViewModel
+import com.proiect.cargram.ui.screens.SettingsScreen
 
 sealed class Screen(val route: String) {
     object Login : Screen("login?email={email}") {
@@ -109,7 +110,8 @@ fun AuthNavGraph(
                 },
                 onNavigateToCreatePost = {
                     navController.navigate(Screen.CreatePost.route)
-                }
+                },
+                onNavigateToSettings = { navController.navigate("settings") }
             )
         }
 
@@ -135,7 +137,8 @@ fun AuthNavGraph(
                 onNavigateProfile = {
                     val userId = profileViewModel.uiState.value.user?.id
                     navController.navigate(Screen.Profile.createRoute(userId))
-                }
+                },
+                onNavigateSettings = { navController.navigate("settings") }
             )
         }
 
@@ -143,6 +146,21 @@ fun AuthNavGraph(
             CreatePostScreen(
                 onNavigateBack = {
                     navController.popBackStack()
+                }
+            )
+        }
+
+        composable("settings") {
+            val authViewModel = hiltViewModel<AuthViewModel>()
+            SettingsScreen(
+                isDarkMode = false, // TODO: leagă de preferințe
+                onDarkModeToggle = {},
+                onLogout = {
+                    authViewModel.signOut()
+                    navController.navigate(Screen.Login.createRoute()) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }

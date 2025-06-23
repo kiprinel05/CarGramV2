@@ -42,7 +42,8 @@ fun ProfileScreen(
     onProfileImageSelected: ((Uri) -> Unit)? = null,
     onNavigateHome: (() -> Unit)? = null,
     onNavigateCreatePost: (() -> Unit)? = null,
-    onNavigateProfile: (() -> Unit)? = null
+    onNavigateProfile: (() -> Unit)? = null,
+    onNavigateSettings: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -66,6 +67,7 @@ fun ProfileScreen(
                             BottomNavItem.Home -> onNavigateHome?.invoke()
                             BottomNavItem.CreatePost -> onNavigateCreatePost?.invoke()
                             BottomNavItem.Profile -> onNavigateProfile?.invoke()
+                            BottomNavItem.Settings -> onNavigateSettings?.invoke()
                         }
                     }
                 )

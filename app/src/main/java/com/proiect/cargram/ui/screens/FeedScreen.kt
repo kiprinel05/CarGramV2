@@ -46,6 +46,7 @@ sealed class BottomNavItem(val route: String, val icon: Int) {
     object Home : BottomNavItem("home", R.drawable.home)
     object CreatePost : BottomNavItem("create_post", R.drawable.share)
     object Profile : BottomNavItem("profile", R.drawable.profile)
+    object Settings : BottomNavItem("settings", R.drawable.settings)
 }
 
 @Composable
@@ -63,7 +64,8 @@ fun BottomNavBar(
         val items = listOf(
             BottomNavItem.Home,
             BottomNavItem.CreatePost,
-            BottomNavItem.Profile
+            BottomNavItem.Profile,
+            BottomNavItem.Settings
         )
         
         Row(
@@ -108,7 +110,8 @@ fun FeedScreen(
     onNavigateToProfile: (String?) -> Unit = {},
     onNavigateToCreatePost: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
-    onNavigateToMessages: () -> Unit = {}
+    onNavigateToMessages: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val currentUserId = viewModel.getCurrentUserId()
@@ -140,6 +143,7 @@ fun FeedScreen(
                             BottomNavItem.Home -> {} // Already on home
                             BottomNavItem.CreatePost -> onNavigateToCreatePost()
                             BottomNavItem.Profile -> onNavigateToProfile(currentUserId)
+                            BottomNavItem.Settings -> onNavigateToSettings()
                         }
                     }
                 )
