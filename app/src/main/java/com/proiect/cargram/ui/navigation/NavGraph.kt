@@ -206,7 +206,13 @@ fun AuthNavGraph(
                             popUpTo(0) { inclusive = true }
                             launchSingleTop = true
                         }
-                    }
+                    },
+                    onNavigateHome = { navController.navigate(Screen.MainFeed.route) },
+                    onNavigateCreatePost = { navController.navigate(Screen.CreatePost.route) },
+                    onNavigateProfile = { 
+                        navController.navigate(Screen.Profile.createRoute(null))
+                    },
+                    onNavigateSettings = { navController.navigate("settings") }
                 )
             }
         }
