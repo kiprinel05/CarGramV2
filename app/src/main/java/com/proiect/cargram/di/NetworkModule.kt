@@ -1,6 +1,7 @@
 package com.proiect.cargram.di
 
 import com.proiect.cargram.data.api.VinDecoderApi
+import com.proiect.cargram.data.api.FuelPricesApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -10,7 +11,17 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
+import javax.inject.Qualifier
 import okhttp3.Headers
+import retrofit2.converter.simplexml.SimpleXmlConverterFactory
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class VinDecoderRetrofit
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class FuelPricesRetrofit
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -35,6 +46,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @VinDecoderRetrofit
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl("https://api.vindecoder.eu/3.2/")
@@ -45,8 +57,25 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideVinDecoderApi(retrofit: Retrofit): VinDecoderApi {
+    @FuelPricesRetrofit
+    fun provideFuelPricesRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://www.fueleconomy.gov/")
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideVinDecoderApi(@VinDecoderRetrofit retrofit: Retrofit): VinDecoderApi {
         return retrofit.create(VinDecoderApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFuelPricesApi(@FuelPricesRetrofit fuelPricesRetrofit: Retrofit): FuelPricesApi {
+        return fuelPricesRetrofit.create(FuelPricesApi::class.java)
     }
 
     @Provides
