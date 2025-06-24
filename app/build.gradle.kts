@@ -95,7 +95,6 @@ dependencies {
 
     // DataStore Preferences
     implementation("androidx.datastore:datastore-preferences:1.0.0")
-    // Compose runtime (pentru collectAsState, dacă nu există deja)
     implementation("androidx.compose.runtime:runtime:1.5.0")
 
     testImplementation(libs.junit)
