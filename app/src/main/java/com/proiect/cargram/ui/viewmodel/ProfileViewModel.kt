@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.net.Uri
@@ -29,6 +30,7 @@ data class ProfileUiState(
     val user: User? = null,
     val vehicle: Vehicle? = null,
     val posts: List<Post> = emptyList(),
+    val favoritesCount: Int = 0,
     val error: String? = null
 )
 
@@ -78,7 +80,17 @@ class ProfileViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(user = user, vehicle = vehicle)
             
             postRepository.getPostsForUser(profileUserId).collect { posts ->
-                _uiState.value = _uiState.value.copy(posts = posts, isLoading = false)
+                val favoritesCount = if (profileUserId == currentUser?.uid) {
+                    postRepository.getFavoritesForUser(profileUserId).first().size
+                } else {
+                    0
+                }
+                
+                _uiState.value = _uiState.value.copy(
+                    posts = posts, 
+                    favoritesCount = favoritesCount,
+                    isLoading = false
+                )
             }
         }
     }

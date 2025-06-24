@@ -171,7 +171,7 @@ fun ProfileScreen(
                                 ) {
                                     ProfileStat(number = posts.size.toString(), label = "posts")
                                     ProfileStat(number = posts.sumOf { it.likes }.toString(), label = "likes")
-                                    ProfileStat(number = posts.sumOf { it.shares }.toString(), label = "favourites")
+                                    ProfileStat(number = uiState.favoritesCount.toString(), label = "favourites")
                                 }
                             }
                         }
