@@ -15,6 +15,12 @@ CarGram aims to be the go-to social platform for car enthusiasts, offering a spe
 - **User Registration**: Complete registration flow with username creation
 - **Profile Management**: Customizable user profiles with profile pictures
 - **Dark Mode Support**: Toggle between light and dark themes
+  
+<img width="392" height="863" alt="login light" src="https://github.com/user-attachments/assets/69f0b437-6fcb-4cc2-b7df-aa6b30525f48" />
+<img width="389" height="860" alt="login dark" src="https://github.com/user-attachments/assets/c436141f-dee1-4284-8440-52d8d72f1436" />
+
+<img width="383" height="860" alt="register 1 dark" src="https://github.com/user-attachments/assets/8833079d-892c-4b05-a585-8af84b38e65b" />
+<img width="389" height="861" alt="register 1 light" src="https://github.com/user-attachments/assets/255aa29b-eff7-494c-9c32-a7444dcf5a3f" />
 
 ### 🚗 Vehicle Profile System
 - **VIN Decoder Integration**: Automatic vehicle information extraction using VIN numbers
@@ -25,6 +31,8 @@ CarGram aims to be the go-to social platform for car enthusiasts, offering a spe
   - Transmission type
   - Fuel type
   - VIN number
+<img width="388" height="860" alt="register 2 dark" src="https://github.com/user-attachments/assets/47250372-cac9-4629-af30-5d92bd344560" />
+<img width="387" height="860" alt="register 2 light" src="https://github.com/user-attachments/assets/408a7643-64e2-4dfc-b4e2-c1c2501c74e8" />
 
 ### 📱 Social Media Features
 - **Photo Sharing**: Upload and share high-quality photos of your vehicles
@@ -33,6 +41,16 @@ CarGram aims to be the go-to social platform for car enthusiasts, offering a spe
 - **Favorites**: Save posts to your favorites collection
 - **Sorting Options**: Sort posts by timeline or most liked
 - **Tab Navigation**: Switch between "For You" and "Favorites" feeds
+
+  
+<img width="388" height="860" alt="main-light" src="https://github.com/user-attachments/assets/acffc74a-51e9-4018-a0a8-6a8a77c67dad" />
+<img width="387" height="862" alt="home dark" src="https://github.com/user-attachments/assets/f533902f-cb1f-4746-abc1-1fe38eb1e430" />
+<img width="385" height="860" alt="user - light" src="https://github.com/user-attachments/assets/e3ae69b2-62f0-4e91-9119-28a8b1087e03" />
+<img width="386" height="862" alt="user - dark" src="https://github.com/user-attachments/assets/a5a833ce-1045-4f1f-9322-9af80d091968" />
+<img width="385" height="867" alt="add-light" src="https://github.com/user-attachments/assets/5e80f118-0828-49c7-b552-c96278879776" />
+<img width="394" height="859" alt="upload - dark" src="https://github.com/user-attachments/assets/af01f12f-f5c4-441f-a3d6-98073f90964c" />
+<img width="385" height="862" alt="settings - light" src="https://github.com/user-attachments/assets/9771c071-f25c-42bd-a4ae-9c8c48ab723a" />
+<img width="392" height="861" alt="settings - dark" src="https://github.com/user-attachments/assets/1de2d46a-2112-4eaa-8163-2af1e01d3d0f" />
 
 ### 🎨 Modern UI/UX
 - **Material Design 3**: Latest Material Design principles
